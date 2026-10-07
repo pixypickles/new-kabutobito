@@ -160,12 +160,17 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
  for(let e of ladybugs)if(e&&e.alive!==0)throwers.push({x:e.x,y:e.y,w:38,h:50,alive:1,face:-1,t:Math.floor(Math.random()*70)});
  ladybugs.length=0;
 }
+let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 function update(){if(LOOP2)p.blueHorn=true;/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won){winTimer++;if(winTimer===55)nextStage('world3-1.html');return;}
  if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
 
  let L=keys.arrowleft||keys.a,Rt=keys.arrowright||keys.d,D=keys.arrowdown||keys.s,U=keys.arrowup,J=keys.z||keys[' '];
+ // Horn Dash command: tap the same direction twice, then press B while the short command window is active.
+ let hornEdgeDir=(Rt&&!prevHornR)?1:((L&&!prevHornL)?-1:0);
+ if(hornEdgeDir){if(hornTapDir===hornEdgeDir&&frame-hornTapFrame<=20){hornReadyDir=hornEdgeDir;hornReadyT=30;hornTapDir=0;hornTapFrame=-999}else{hornTapDir=hornEdgeDir;hornTapFrame=frame}}
+ prevHornL=!!L;prevHornR=!!Rt;if(hornReadyT>0)hornReadyT--;
  p.lookUp=!!U&&p.on&&!D;
  if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
  let max=p.crouch?2.2:7.2;if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;
@@ -177,13 +182,13 @@ function update(){if(LOOP2)p.blueHorn=true;/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.
  jumpHeld=!!J;
  if(!p.wallGrab)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
-if(keys.punch){
-   // Horizontal + B always has priority: Horn Dash works regardless of glove/equipment.
-   let forward=(Rt&&!L)||(L&&!Rt);
-   if(forward&&!U&&p.hornDashCd<=0){p.face=Rt?1:-1;p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2)}
+if(keys.punch&&!hornBHeld){
+   // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
+   if(hornReadyT>0&&!U&&p.hornDashCd<=0){p.face=hornReadyDir||p.face;p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2);hornReadyT=0;hornReadyDir=0}
    else if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
    else if((!p.glove||p.blueHorn)&&p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
+ hornBHeld=!!keys.punch;
  if(!p.punchT&&!p.hornT){p.attackUp=false;p.hornBossLatch=0;}
  let punch=null;if(p.punchT)punch=p.attackUp?{x:p.x-7,y:p.y-58,w:p.w+14,h:66}:{x:p.face>0?p.x+p.w-2:p.x-58,y:p.y+5,w:60,h:Math.max(34,p.h-8)};
  hornHit=null;hornGuard=null;
