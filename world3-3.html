@@ -539,36 +539,38 @@ function draw(){
  if(!(p.inv&&Math.floor(p.inv/5)%2)){
    let cx=p.x+p.w/2;
    if(p.hornDashT){
-     // Horn dash keeps the hero's normal cute proportions; the whole body simply lifts and leans forward.
-     let cy=p.y+p.h/2-4,bodyH=p.big?27:20,headR=p.big?17:14;
-     g.save();g.translate(cx,cy);if(p.face<0)g.scale(-1,1);g.rotate(-0.16);
+     // Horizontal horn-charge pose: keep the cute round head/body proportions, but arrange them along the flight direction.
+     let cy=p.y+p.h/2-3,bodyRX=p.big?17:15,bodyRY=p.big?14:12,headR=p.big?17:14;
+     g.save();g.translate(cx,cy);if(p.face<0)g.scale(-1,1);
      // speed streaks
      g.strokeStyle='#ffffff99';g.lineWidth=3;g.lineCap='round';
-     for(const yy of [-13,0,13]){g.beginPath();g.moveTo(-45,yy);g.lineTo(-25,yy);g.stroke()}
-     // legs float behind the body; no stretching to the ground
-     g.strokeStyle='#53606d';g.lineWidth=5;g.beginPath();g.moveTo(-7,10);g.lineTo(-15,15);g.moveTo(7,10);g.lineTo(1,18);g.stroke();
-     // same upright/round torso proportions as the normal pose
+     for(const yy of [-13,0,13]){g.beginPath();g.moveTo(-49,yy);g.lineTo(-27,yy);g.stroke()}
+     // rear body stays compact and round -- never stretched into a long torso
      g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
-     g.beginPath();g.ellipse(0,4,14,bodyH/2,0,0,7);g.fill();g.stroke();
-     g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,4-bodyH*.35);g.lineTo(0,4+bodyH*.35);g.stroke();
-     // arms trail slightly, while keeping the normal silhouette
-     g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(-11,2);g.lineTo(-18,8);g.moveTo(11,2);g.lineTo(17,7);g.stroke();
-     // round head stays above the torso instead of being pulled forward like a snout
-     let headX=3,headY=-bodyH/2-headR+3;
-     g.fillStyle='#d8f3df';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(headX,headY,headR,headR*.9,0,0,7);g.fill();g.stroke();
-     // curved rhinoceros-beetle horn, rooted high on the forehead; its tip points into the charge.
-     let hrLen=p.blueHorn?(p.big?42:35):(p.big?30:23),baseX=headX+7,baseY=headY-headR*.78;
-     let tipX=baseX+hrLen+8,tipY=baseY+5;
+     g.beginPath();g.ellipse(-9,3,bodyRX,bodyRY,0,0,7);g.fill();g.stroke();
+     g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(-9,3-bodyRY*.65);g.lineTo(-9,3+bodyRY*.65);g.stroke();
+     // arms and legs trail freely in the air
+     g.strokeStyle='#53606d';g.lineWidth=4;g.lineCap='round';g.beginPath();
+     g.moveTo(-17,-2);g.lineTo(-26,-8);g.moveTo(-18,8);g.lineTo(-27,14);
+     g.moveTo(-4,11);g.lineTo(-11,19);g.moveTo(3,10);g.lineTo(-2,18);g.stroke();
+     // round head sits in front of the body at the same height: the whole character is horizontal
+     let headX=13,headY=-2;
+     g.fillStyle='#d8f3df';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.ellipse(headX,headY,headR,headR*.92,0,0,7);g.fill();g.stroke();
+     // Beetle horn: rooted on the upper/front forehead, gently curves upward then sweeps forward.
+     let hrLen=p.blueHorn?(p.big?48:41):(p.big?37:31);
+     let baseX=headX+headR*.68,baseY=headY-headR*.40,tipX=baseX+hrLen,tipY=headY-5;
      g.fillStyle=p.blueHorn?'#a8f4ff':'#86c8d8';g.strokeStyle=p.blueHorn?'#eaffff':'#53606d';g.lineWidth=3;
      if(p.blueHorn){g.shadowColor='#8fefff';g.shadowBlur=14}
-     g.beginPath();g.moveTo(baseX,baseY+5);
-     g.quadraticCurveTo(baseX+5,baseY-18,baseX+hrLen*.48,baseY-18);
-     g.quadraticCurveTo(baseX+hrLen*.78,baseY-16,tipX,tipY);
-     g.quadraticCurveTo(baseX+hrLen*.72,baseY-5,baseX+8,baseY+11);g.closePath();g.fill();g.stroke();
-     g.shadowBlur=0;
-     // face remains cute and recognizable
-     g.fillStyle='#43505d';g.beginPath();g.arc(headX+5,headY-2,2.3,0,7);g.arc(headX+11,headY-2,2.3,0,7);g.fill();
-     g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc(headX+8,headY+5,4,0,Math.PI);g.stroke();
+     g.beginPath();
+     g.moveTo(baseX-2,baseY+6);
+     g.quadraticCurveTo(baseX+hrLen*.28,baseY+10,tipX,tipY);
+     g.quadraticCurveTo(baseX+hrLen*.72,baseY-9,baseX+hrLen*.22,baseY-10);
+     g.quadraticCurveTo(baseX+5,baseY-8,baseX-2,baseY+6);
+     g.closePath();g.fill();g.stroke();g.shadowBlur=0;
+     // one visible eye and a small determined smile; face stays on the head, not at the horn base
+     g.fillStyle='#43505d';g.beginPath();g.arc(headX+5,headY-3,2.3,0,7);g.fill();
+     g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc(headX+7,headY+4,4,0,Math.PI);g.stroke();
      g.restore();
    }else{
    let foot=p.y+p.h,moving=Math.abs(p.vx)>.35,air=!p.on,bob=moving&&!air?Math.sin(p.anim)*2:0,leg=moving&&!air?Math.sin(p.anim)*5:0;
