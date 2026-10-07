@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>カブトビト大冒険</title>
+<style>
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#222;touch-action:none;font-family:monospace}
+#wrap{width:100%;height:100%;display:grid;place-items:center}
+canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-rendering:pixelated;background:#76d2ef}
+.touch{display:none;position:fixed;z-index:9999;touch-action:none}
+#stickBase{width:132px;height:132px;border:3px solid #fff;border-radius:50%;background:#0005;position:relative}
+#stickKnob{width:60px;height:60px;border:3px solid #fff;border-radius:50%;background:#ffffff44;position:absolute;left:33px;top:33px}
+.dir{position:absolute;color:#fff;font-size:23px;pointer-events:none}
+#dl{left:8px;top:50px}#dr{right:8px;top:50px}#du{left:54px;top:2px}#dd{left:54px;bottom:2px}
+.actions{gap:18px;align-items:center}
+.actions button{-webkit-appearance:none;appearance:none;width:92px;height:92px;padding:0;border:4px solid #fff;border-radius:50%;background:#0009;color:#fff;font:bold 36px monospace;touch-action:none}
+#hint{position:fixed;bottom:5px;left:0;right:0;text-align:center;color:#fff;text-shadow:2px 2px #000;font-size:13px}
+@media(pointer:coarse),(max-width:1100px){
+ .touch{display:flex!important}
+ .left{left:18px;bottom:24px}.right{right:24px;bottom:38px}
+ #hint{display:none}
+}
+</style>
+</head>
+<body><script>localStorage.setItem('maruchibiCurrentStage','world1-2.html');</script>
+<div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
+<div id="hint">← → 移動　A/Z/Space ジャンプ・空中で滑空　B 角すくい投げ／グローブ時パンチ　↓ しゃがむ</div>
+<div class="touch left"><div id="stickBase">
+<span class="dir" id="dl">←</span><span class="dir" id="dr">→</span><span class="dir" id="du">↑</span><span class="dir" id="dd">↓</span>
+<div id="stickKnob"></div></div></div>
+<div class="touch right actions"><button id="B">B</button><button id="J">A</button></div>
+<script>
+const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
+const carriedScore=Number(localStorage.getItem('maruchibiScore')||0),carriedStars=Number(localStorage.getItem('maruchibiStars')||0),carriedBig=localStorage.getItem('maruchibiBig')==='1',carriedGlove=localStorage.getItem('maruchibiGlove')==='1';localStorage.removeItem('maruchibiScore');localStorage.removeItem('maruchibiStars');localStorage.removeItem('maruchibiBig');localStorage.removeItem('maruchibiGlove');
+const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
+const W=960,H=540,GROUND=480,WORLD=6000;
+let keys={},cam=0,score=carriedScore,stars=carriedStars,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null;
+const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:carriedBig,glove:carriedGlove,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
+if(LOOP2){p.blueHorn=true;}
+
+
+if(p.big){let f=p.y+p.h;p.h=62;p.y=f-62}
+
+const grounds=[
+ {x:0,y:GROUND,w:720,h:60},{x:840,y:GROUND,w:760,h:60},{x:1720,y:GROUND,w:620,h:60},
+ {x:2460,y:GROUND,w:940,h:60},{x:3530,y:GROUND,w:690,h:60},{x:4350,y:GROUND,w:1650,h:60}
+];
+const ledges=[
+ {x:430,y:336,w:144,h:48},{x:1040,y:288,w:144,h:48},{x:1420,y:352,w:96,h:48},
+ {x:1900,y:304,w:144,h:48},{x:2740,y:336,w:144,h:48},{x:3150,y:256,w:144,h:48},
+ {x:3710,y:320,w:144,h:48},{x:4580,y:272,w:144,h:48},{x:4920,y:352,w:96,h:48},
+ {x:5200,y:288,w:144,h:48}
+];
+let blocks=[
+ {x:478,y:240,type:'sap'},{x:1088,y:192,type:'leaf'},{x:1948,y:208,type:'glove'},
+ {x:2788,y:240,type:'leaf'},{x:3198,y:160,type:'sap'},{x:3758,y:224,type:'leaf'},
+ {x:4628,y:176,type:'leaf'},{x:5248,y:192,type:'sap'}
+];
+let pipes=[
+ {x:910,y:GROUND-96,w:82,h:96,alive:1,phase:20},
+ {x:2570,y:GROUND-120,w:82,h:120,alive:1,phase:100},
+ {x:4440,y:GROUND-96,w:82,h:96,alive:1,phase:180}
+];
+let ants=[
+ {x:620,y:GROUND-30,v:-1.15,alive:1,flat:0},{x:1280,y:GROUND-30,v:-1.05,alive:1,flat:0},
+ {x:2140,y:GROUND-30,v:-1.2,alive:1,flat:0},{x:3000,y:GROUND-30,v:-1.1,alive:1,flat:0},
+ {x:4000,y:GROUND-30,v:-1.15,alive:1,flat:0},{x:5100,y:GROUND-30,v:-1.1,alive:1,flat:0}
+];
+let snails=[
+ {x:1500,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0},{x:2860,y:GROUND-38,v:-.75,alive:1,shell:0,shellV:0},
+ {x:4720,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0}
+];
+let pickups=[],particles=[],thrownStags=[];
+let airLeaves=[{x:720,y:300},{x:800,y:255},{x:880,y:300},{x:1510,y:260},{x:1590,y:215},{x:1670,y:260},{x:2380,y:300},{x:2460,y:255},{x:2540,y:300},{x:3440,y:245},{x:3520,y:200},{x:3600,y:245},{x:4380,y:285},{x:4460,y:240},{x:4540,y:285},{x:5350,y:230}].map(q=>({...q,w:24,h:24,got:0}));
+
+/* LOOP2 ENHANCER */
+if(LOOP2){
+  
+  const tougher=(arr,dx)=>{if(!Array.isArray(arr)||!arr.length)return;let add=[];for(let i=0;i<arr.length;i+=2){let e=arr[i];if(!e||typeof e.x!=='number')continue;let n={...e,x:e.x+dx,alive:1};if('cd' in n)n.cd=Math.max(22,(n.cd||60)-12);if('safeT' in n)n.safeT=0;add.push(n)}arr.push(...add)};
+  if(typeof grasshoppers!=='undefined')tougher(grasshoppers,150);
+  if(typeof snails!=='undefined')tougher(snails,210);
+  if(typeof ants!=='undefined')tougher(ants,175);
+  if(typeof frogs!=='undefined')tougher(frogs,190);
+  if(typeof throwers!=='undefined')tougher(throwers,230);
+  if(typeof waterShooters!=='undefined')tougher(waterShooters,185);
+}
+let loopBullets=[],loopBursts=[],loopBulletClock=0;
+function R(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function groundAt(x,y){
+ return grounds.some(q=>x>=q.x&&x<=q.x+q.w&&y>=q.y-3&&y<=q.y+q.h);
+}
+function solids(){
+ return grounds.concat(ledges).concat(pipes.filter(q=>q.alive)).concat(blocks.filter(b=>!b.broken).map(b=>({x:b.x,y:b.y,w:48,h:48,block:b})));
+}
+function debris(x,y,n=7){
+ for(let i=0;i<n;i++)particles.push({x:x+24,y:y+20,vx:(Math.random()*6-3),vy:-3-Math.random()*5,t:55,r:3+Math.random()*5});
+}
+function release(b){
+ if(!b||b.released)return;b.released=1;b.hit=1;
+ // Block leaves are collected instantly when the block is hit; the popped leaf is visual only.
+ if(b.type==='leaf'){
+   stars++;score+=400;notice='青葉っぱ +1';noticeT=55;
+   pickups.push({x:b.x+10,y:b.y-34,w:30,h:30,type:'leafFx',vy:-3,t:0,got:0});
+ }else{
+   pickups.push({x:b.x+10,y:b.y-34,w:30,h:30,type:b.type,vy:-3,t:0});score+=100;
+ }
+}
+function setH(h){let f=p.y+p.h;p.h=h;p.y=f-h}
+function canStand(){if(!p.big)return true;let q={x:p.x,y:p.y-(62-p.h),w:p.w,h:62};return !solids().some(s=>R(q,s))}
+function hurt(force=false){if(p.hornT>0&&!force)return;
+ if(p.inv)return;
+ if(p.glove){p.glove=false;p.inv=100;p.vy=-5}
+ else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
+ else{dead=true;p.vy=-9;localStorage.setItem('maruchibiMisses',String(Number(localStorage.getItem('maruchibiMisses')||0)+1))}
+}
+function breakBlock(b){if(!b||b.broken)return;release(b);b.broken=1;debris(b.x,b.y,9);score+=100}
+function breakPipe(q){if(!q.alive)return;q.alive=0;debris(q.x,q.y,15);score+=500}
+function shellHitBox(s){return{x:s.x-3,y:s.y+10,w:42,h:28}}
+function kickShell(s,dir){s.shell=1;s.shellV=dir*11;s.v=0;score+=100}
+function stompableTop(e,h){return p.vy>1 && p.y+p.h<=e.y+h*.72}
+function scoopProtected(r){
+ // During the complete horn-scoop animation, normal enemy contact cannot hurt the player.
+ // This avoids a second collision pass damaging the player after the scoop has begun.
+ return p.hornT>0;
+}
+
+
+// Shared item art: broad blue leaf with visible veins, and bottled tree sap.
+function drawBlueLeaf(cx,cy,scale=1){
+ g.save();g.translate(cx,cy);g.scale(scale,scale);g.rotate(-.45);
+ g.fillStyle='#55aee8';g.strokeStyle='#244f78';g.lineWidth=2;
+ g.beginPath();g.moveTo(0,-15);g.bezierCurveTo(12,-11,14,2,0,15);g.bezierCurveTo(-14,2,-12,-11,0,-15);g.fill();g.stroke();
+ g.strokeStyle='#d8f4ff';g.lineWidth=1.6;g.beginPath();g.moveTo(0,-12);g.lineTo(0,14);
+ for(let yy=-7;yy<=7;yy+=7){g.moveTo(0,yy);g.lineTo(7,yy-5);g.moveTo(0,yy);g.lineTo(-7,yy-5)}g.stroke();
+ g.strokeStyle='#244f78';g.lineWidth=2;g.beginPath();g.moveTo(0,14);g.lineTo(6,20);g.stroke();g.restore();
+}
+function drawSapBottle(cx,cy,scale=1){
+ g.save();g.translate(cx,cy);g.scale(scale,scale);
+ g.fillStyle='#f4fbff99';g.strokeStyle='#d9f4ff';g.lineWidth=2;g.beginPath();
+ g.moveTo(-6,-15);g.lineTo(6,-15);g.lineTo(7,-9);g.quadraticCurveTo(13,-5,13,5);g.lineTo(13,13);g.quadraticCurveTo(0,18,-13,13);g.lineTo(-13,5);g.quadraticCurveTo(-13,-5,-7,-9);g.closePath();g.fill();g.stroke();
+ g.fillStyle='#d98b28';g.beginPath();g.moveTo(-11,2);g.lineTo(11,2);g.lineTo(11,12);g.quadraticCurveTo(0,16,-11,12);g.closePath();g.fill();
+ g.fillStyle='#79502d';g.fillRect(-7,-19,14,5);g.fillStyle='#fff6d6';g.strokeStyle='#8b6536';g.lineWidth=1;g.fillRect(-10,3,20,8);
+ g.fillStyle='#68451f';g.font='bold 6px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('樹液',0,7);g.restore();
+}
+
+function reset(){location.reload()}
+function nextStage(url){
+ localStorage.setItem('maruchibiScore',String(score));localStorage.setItem('maruchibiStars',String(stars));
+ localStorage.setItem('maruchibiBig',p.big?'1':'0');localStorage.setItem('maruchibiGlove',p.glove?'1':'0');localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
+ localStorage.setItem('kabutobitoClearedStage','1-2');localStorage.setItem('kabutobitoNextStage',url);
+ location.href='stage-clear.html';
+}
+onkeydown=e=>{let k=e.key.toLowerCase();keys[k]=1;if(k==='b')keys.punch=1;if(k==='r')reset()};
+onkeyup=e=>{let k=e.key.toLowerCase();keys[k]=0;if(k==='b')keys.punch=0};
+document.addEventListener('contextmenu',e=>e.preventDefault());document.addEventListener('selectstart',e=>e.preventDefault());
+window.addEventListener('blur',()=>keys={});
+
+function bindHold(id,k){let b=document.getElementById(id);b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture?.(e.pointerId);keys[k]=1};let up=e=>{e.preventDefault();keys[k]=0};b.onpointerup=up;b.onpointercancel=up;b.onlostpointercapture=()=>keys[k]=0}
+bindHold('J','z');bindHold('B','punch');
+const sb=document.getElementById('stickBase'),sk=document.getElementById('stickKnob');let sid=null;
+function sm(e){let r=sb.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),d=Math.hypot(dx,dy),m=43;if(d>m){dx*=m/d;dy*=m/d}sk.style.transform=`translate(${dx}px,${dy}px)`;keys.arrowleft=dx<-18;keys.arrowright=dx>18;keys.arrowdown=dy>25;keys.arrowup=dy<-30}
+sb.onpointerdown=e=>{e.preventDefault();sid=e.pointerId;sb.setPointerCapture?.(sid);sm(e)};sb.onpointermove=e=>{if(e.pointerId===sid)sm(e)};
+function su(e){if(sid===null||e.pointerId===sid){sid=null;sk.style.transform='translate(0,0)';keys.arrowleft=keys.arrowright=keys.arrowdown=keys.arrowup=0}}sb.onpointerup=su;sb.onpointercancel=su;sb.onlostpointercapture=su;
+
+function moveActor(a,w,h){
+ let oldY=a.y;a.vy=(a.vy||0)+.55;a.y+=a.vy;
+ let floor=null;
+ for(let s of grounds.concat(ledges).concat(pipes.filter(q=>q.alive))){
+   if(a.x+w>s.x&&a.x<s.x+s.w&&oldY+h<=s.y+6&&a.y+h>=s.y){floor=s;break}
+ }
+ if(floor){a.y=floor.y-h;a.vy=0;a.on=true}else a.on=false;
+}
+
+/*LOOP2_LADY_TO_THROWER*/
+if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof throwers!=='undefined'){
+ for(let e of ladybugs)if(e&&e.alive!==0)throwers.push({x:e.x,y:e.y,w:38,h:50,alive:1,face:-1,t:Math.floor(Math.random()*70)});
+ ladybugs.length=0;
+}
+function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
+ frame++;if(won)return;
+ if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
+ if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
+
+ let L=keys.arrowleft||keys.a,Rt=keys.arrowright||keys.d,D=keys.arrowdown||keys.s,U=keys.arrowup,J=keys.z||keys[' '];
+ if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
+ let max=p.crouch?2.2:7.2;if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;
+ // Beetle wall-cling: hold toward a wall; A/Z jumps away from it.
+ if(p.wallGrab){let holding=(p.wallDir<0&&L)||(p.wallDir>0&&Rt);if(!holding){p.wallGrab=false}else{p.vx=0;p.vy=0;p.glide=false;if(J&&!jumpHeld){p.wallGrab=false;p.wallLock=10;p.vx=-p.wallDir*8.8;p.vy=-16.2;p.face=-p.wallDir}}}
+ if(J&&p.on&&!jumpHeld){if(p.crouch&&canStand()){setH(62);p.crouch=false}p.vy=-17.6;p.on=false}
+ // Glide is player-only: after jumping, hold A while descending.
+ p.glide=(!p.on&&J&&p.vy>0);
+ jumpHeld=!!J;
+ if(!p.wallGrab)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
+ if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
+if(keys.punch){
+   if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
+   else if((!p.glove||p.blueHorn)&&p.hornCd<=0){let forward=(Rt&&!L)||(L&&!Rt);p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(forward&&!U&&p.hornDashCd<=0){p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2)}if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
+ }
+ if(!p.punchT&&!p.hornT)p.attackUp=false;
+ let punch=null;if(p.punchT)punch=p.attackUp?{x:p.x-7,y:p.y-58,w:p.w+14,h:66}:{x:p.face>0?p.x+p.w-2:p.x-58,y:p.y+5,w:60,h:Math.max(34,p.h-8)};
+ hornHit=null;hornGuard=null;
+ let hornActive=p.hornT<=12&&p.hornT>=6;
+ if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
+ if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
+ if(p.hornDashT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+
+ p.x+=p.vx;
+ for(let s of solids())if(R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
+ let oy=p.y;p.y+=p.vy;p.on=false;
+ for(let s of solids())if(R(p,s)){
+   if(p.vy>0&&oy+p.h<=s.y+8){p.y=s.y-p.h;p.vy=0;p.on=true;p.glide=false;p.wallGrab=false}
+   else if(p.vy<0&&oy>=s.y+s.h-8){p.y=s.y+s.h;p.vy=1;if(s.block&&!s.block.hit)release(s.block)}
+ }
+
+ if(punch){
+   for(let b of blocks)if(!b.broken&&R(punch,{x:b.x,y:b.y,w:48,h:48}))breakBlock(b);
+   for(let q of pipes)if(q.alive&&q.rise>.12&&q.bug&&R(punch,q.bug)){q.bugDead=1;q.stagGone=1;q.respawnT=0;q.rise=0;score+=300;debris(q.bug.x,q.bug.y,7)}
+   for(let a of ants)if(a.alive&&!a.flat&&R(punch,{x:a.x,y:a.y,w:36,h:30})){a.alive=0;debris(a.x,a.y,6);score+=250}
+   for(let s of snails)if(s.alive&&R(punch,{x:s.x,y:s.y,w:38,h:38})){if(s.shell)kickShell(s,p.face);else{s.shell=1;s.shellV=p.face*10;score+=250}}
+ }
+ // Horn scoop: lift enemies from the front and fling them behind the player.
+ /* LOOP2 ALL-ENEMY BULLETS */
+ if(LOOP2){
+   loopBulletClock++;
+   if(loopBulletClock%150===0){
+     let pool=[];
+     const add=A=>{if(Array.isArray(A))pool.push(...A)};
+     if(typeof ants!=='undefined')add(ants);if(typeof snails!=='undefined')add(snails);if(typeof grasshoppers!=='undefined')add(grasshoppers);
+     if(typeof frogs!=='undefined')add(frogs);if(typeof throwers!=='undefined')add(throwers);if(typeof waterShooters!=='undefined')add(waterShooters);
+     if(typeof flyers!=='undefined')add(flyers);if(typeof swimmers!=='undefined')add(swimmers);if(typeof enemies!=='undefined')add(enemies);
+     let fired=0;for(let e of pool){if(fired>=3)break;if(!e||e.alive===0||e.dead||typeof e.x!=='number')continue;let ex=e.x+(e.w||36)/2,ey=e.y+(e.h||38)/2;if(Math.abs(ex-(p.x+p.w/2))>620)continue;let dir=(p.x+p.w/2)>=ex?1:-1;loopBullets.push({x:ex,y:ey,vx:dir*2.55,vy:-5.4,r:7,t:230,ref:0,spin:0});fired++}
+   }
+   for(let q of loopBullets){q.x+=q.vx;q.y+=q.vy;q.vy+=.19;q.spin=(q.spin||0)+.13;q.t--;
+     if(p.blueHorn&&hornHit&&R(hornHit,{x:q.x-q.r,y:q.y-q.r,w:q.r*2,h:q.r*2})&&!q.ref){q.ref=1;q.vx=(p.face||1)*4.2;q.vy=-3.8;q.t=120;loopBursts.push({x:q.x,y:q.y,t:14});score+=20;continue}
+     if(!q.ref&&R(p,{x:q.x-q.r,y:q.y-q.r,w:q.r*2,h:q.r*2})){hurt();q.t=0;loopBursts.push({x:q.x,y:q.y,t:12})}
+     if(q.ref){let hit=false;const zap=A=>{if(!Array.isArray(A)||hit)return;for(let e of A){if(!e||e.alive===0||typeof e.x!=='number')continue;if(R({x:q.x-q.r,y:q.y-q.r,w:q.r*2,h:q.r*2},{x:e.x,y:e.y,w:e.w||40,h:e.h||42})){e.alive=0;hit=true;score+=250;loopBursts.push({x:q.x,y:q.y,t:16});break}}};if(typeof ants!=='undefined')zap(ants);if(typeof snails!=='undefined')zap(snails);if(typeof grasshoppers!=='undefined')zap(grasshoppers);if(typeof frogs!=='undefined')zap(frogs);if(typeof throwers!=='undefined')zap(throwers);if(typeof waterShooters!=='undefined')zap(waterShooters);if(typeof flyers!=='undefined')zap(flyers);if(typeof swimmers!=='undefined')zap(swimmers);if(typeof enemies!=='undefined')zap(enemies);if(hit)q.t=0}
+   }
+   loopBullets=loopBullets.filter(q=>q.t>0&&q.x>-150&&q.x<(typeof WORLD!=='undefined'?WORLD:8000)+150&&q.y>-150&&q.y<650);if(loopBullets.length>12)loopBullets.splice(0,loopBullets.length-12);
+   for(let b of loopBursts)b.t--;loopBursts=loopBursts.filter(b=>b.t>0);
+ }
+ if(hornHit){
+   /* BLUE HORN TERRAIN BREAK */
+   if(p.blueHorn){
+     if(typeof blocks!=='undefined')for(let b of blocks)if(!b.broken&&R(hornHit,{x:b.x,y:b.y,w:48,h:48})){if(typeof breakBlock==='function')breakBlock(b);else b.broken=1}
+     if(typeof pipes!=='undefined')for(let q of pipes)if(q.alive!==false&&R(hornHit,{x:q.x,y:q.y,w:q.w||72,h:q.h||96})){if(typeof breakPipe==='function')breakPipe(q);else q.alive=false}
+     if(typeof tubes!=='undefined')for(let q of tubes)if(q.alive!==false&&R(hornHit,{x:q.x,y:q.y,w:q.w||72,h:q.h||96})){if(typeof breakPipe==='function')breakPipe(q);else q.alive=false}
+   }
+   /* BLUE HORN DESTROY: shell-level power in loop 2 */
+   if(p.blueHorn){
+     const zap=(arr)=>{if(!Array.isArray(arr))return;for(let e of arr){if(!e||e.alive===0||typeof e.x!=='number')continue;let rr={x:e.x,y:e.y,w:e.w||42,h:e.h||48};if(R(hornHit,rr)){e.alive=0;if('flat' in e)e.flat=0;debris(e.x,e.y,8);score+=300}}};
+     if(typeof ants!=='undefined')zap(ants);if(typeof snails!=='undefined')zap(snails);if(typeof grasshoppers!=='undefined')zap(grasshoppers);if(typeof frogs!=='undefined')zap(frogs);if(typeof throwers!=='undefined')zap(throwers);if(typeof waterShooters!=='undefined')zap(waterShooters);
+     if(typeof pipes!=='undefined')for(let q of pipes)if(q.alive&&q.rise>.1&&q.bug&&!q.bugDead&&R(hornHit,q.bug)){q.bugDead=1;q.stagGone=1;q.rise=0;q.respawnT=0;score+=350;debris(q.bug.x,q.bug.y,9)}
+     const zapShots=(arr)=>{if(!Array.isArray(arr))return;for(let sh of arr){if(!sh||sh.t===0||typeof sh.x!=='number')continue;let rr={x:sh.x-7,y:sh.y-7,w:14,h:14};if(R(hornHit,rr)){sh.t=0;sh.dead=1;sh.gone=1;score+=40}}};
+     if(typeof frogShots!=='undefined')zapShots(frogShots);if(typeof enemyShots!=='undefined')zapShots(enemyShots);if(typeof waterShots!=='undefined')zapShots(waterShots);if(typeof bossShots!=='undefined')zapShots(bossShots);
+   }
+
+   // A large horn can also scoop-hit item blocks from the side.
+   if(p.big)for(let b of blocks)if(!b.broken&&!b.hit&&R(hornHit,{x:b.x,y:b.y,w:48,h:48}))release(b);
+   for(let a of ants)if(a.alive&&!a.flat&&R(hornHit,{x:a.x,y:a.y,w:36,h:30})&&!a.thrown){
+     a.thrown=1;a.v=-p.face*(p.big?15:7);a.vy=p.big?-15:-8;a.on=false;a.superThrow=!!p.big;a.safeT=p.big?65:28;score+=150;
+   }
+   for(let s of snails)if(s.alive&&!s.shell&&R(hornHit,{x:s.x,y:s.y,w:38,h:38})&&!s.thrown){
+     s.thrown=1;s.v=-p.face*(p.big?15:7);s.vy=p.big?-15:-8;s.on=false;s.superThrow=!!p.big;s.safeT=p.big?65:28;score+=150;
+   }
+   for(let q of pipes)if(q.alive&&q.rise>.15&&q.bug&&!q.bugDead&&R(hornHit,q.bug)){
+     if(p.big){
+       // Large horn wins the jaw clash: scoop the stag beetle over the hero and fling it behind.
+       q.bugDead=1;q.rise=0;q.respawnT=0;q.stagGone=1;
+       thrownStags.push({x:q.bug.x,y:q.bug.y,vx:-p.face*12,vy:-14,rot:0,vr:-p.face*.22,t:150});
+       score+=300;p.vx+=p.face*1.5;
+     }else{
+       // Small horn loses to the stag's mandibles and is visibly knocked back.
+       p.vx=-p.face*9;p.vy=-5.5;p.hornT=0;p.hornCd=20;p.inv=Math.max(p.inv,16);
+       debris(q.bug.x+(p.face>0?4:68),q.bug.y+24,5);
+     }
+   }
+ }
+
+ // Ladybugs: real gravity, turn at ledges and at wooden tubes.
+ for(let a of ants){
+   if(a.safeT>0)a.safeT--;
+   if(!a.alive)continue;if(a.flat){a.flat--;if(!a.flat)a.alive=0;continue}
+   let oldAX=a.x;a.x+=a.v;
+   if(!a.thrown)for(let q of pipes)if(q.alive&&R({x:a.x,y:a.y,w:36,h:30},q)){a.x=oldAX;a.v*=-1;break}
+   let foot=a.y+31,probe=a.x+(a.v>0?38:-2);
+   if(a.on&&!a.thrown&&!groundAt(probe,foot+5))a.v*=-1;
+   moveActor(a,36,30);if(a.thrown&&a.superThrow&&!a.on)a.v*=.995;if(a.thrown&&a.on){a.thrown=0;a.superThrow=0;a.v=a.v<0?-1.15:1.15}
+   if(a.y>600){a.alive=0;continue}
+ }
+ let antContacts=ants.filter(a=>a.alive&&!a.flat&&!a.thrown&&!a.safeT&&R(p,{x:a.x,y:a.y,w:36,h:30})&&!scoopProtected({x:a.x,y:a.y,w:36,h:30}));
+ let antStomp=antContacts.filter(a=>stompableTop(a,30));
+ if(antStomp.length){for(let a of antStomp){a.flat=28;a.v=0;a.y+=18;score+=200}p.vy=-7.5}
+ if(antContacts.some(a=>!antStomp.includes(a)))hurt();
+
+ // Snails: gravity + ledges. Stomp -> shell. Shell can be kicked and destroys almost everything.
+ for(let s of snails){
+   if(s.safeT>0)s.safeT--;
+   if(!s.alive)continue;
+   if(s.shell&&s.shellV){
+     s.x+=s.shellV;
+     let hb=shellHitBox(s);
+     for(let a of ants)if(a.alive&&R(hb,{x:a.x,y:a.y,w:36,h:30})){a.alive=0;debris(a.x,a.y,5);score+=300}
+     for(let o of snails)if(o!==s&&o.alive&&R(hb,{x:o.x,y:o.y,w:38,h:38})){o.alive=0;debris(o.x,o.y,6);score+=300}
+     for(let b of blocks)if(!b.broken&&R(hb,{x:b.x,y:b.y,w:48,h:48}))breakBlock(b);
+     for(let q of pipes)if(q.alive&&R(hb,q))breakPipe(q);
+     // ledges can also be smashed by shell; remove only 48-wide destructible-ish ones
+     for(let l of ledges)if(!l.broken&&l.w<=144&&R(hb,l)){l.broken=1;debris(l.x,l.y,10)}
+   }else if(!s.shell){
+     let oldSX=s.x;s.x+=s.v;
+     if(!s.thrown)for(let q of pipes)if(q.alive&&R({x:s.x,y:s.y,w:38,h:38},q)){s.x=oldSX;s.v*=-1;break}
+     let probe=s.x+(s.v>0?40:-2);
+     if(s.on&&!s.thrown&&!groundAt(probe,s.y+43))s.v*=-1;
+   }
+   moveActor(s,38,38);if(s.thrown&&s.superThrow&&!s.on)s.v*=.995;if(s.thrown&&s.on){s.thrown=0;s.superThrow=0;s.v=s.v<0?-.8:.8}
+   if(s.y>620)s.alive=0;
+ }
+ // remove broken ledges from collision by physically moving them away
+ for(let l of ledges)if(l.broken){l.y=10000}
+
+ let sc=snails.filter(s=>s.alive&&!s.thrown&&!s.safeT&&R(p,{x:s.x,y:s.y,w:38,h:38})&&!scoopProtected({x:s.x,y:s.y,w:38,h:38}));
+ let stomp=sc.filter(s=>stompableTop(s,38));
+ if(stomp.length){
+   for(let s of stomp){if(!s.shell){s.shell=1;s.shellV=0;s.v=0;score+=200}else if(s.shellV){s.shellV=0;score+=100}}
+   p.vy=-7.5;
+ }
+ for(let s of sc)if(!stomp.includes(s)){
+   if(s.shell&&!s.shellV){kickShell(s,p.x<s.x?1:-1);p.vx+=(p.x<s.x?-2:2)}
+   else hurt();
+ }
+
+ // Wooden tubes and stag beetles.
+ for(let q of pipes){
+   if(!q.alive)continue;
+   if(q.stagGone){q.rise=0;q.bugDead=1;continue}
+   if(q.bugDead){q.rise=0;if(q.respawnT>0)q.respawnT--;else{q.bugDead=0;q.phase=0}continue}
+   q.phase=(q.phase+1)%240;
+   let r=q.phase<45?q.phase/45:q.phase<120?1:q.phase<165?1-(q.phase-120)/45:0;q.rise=r;
+   q.bug={x:q.x+5,y:q.y-12-r*62,w:72,h:64};
+   if(r>.15&&R(p,q.bug)&&p.hornT<=0)hurt();
+ }
+
+ for(let t of thrownStags){t.x+=t.vx;t.y+=t.vy;t.vy+=.55;t.rot+=t.vr;t.t--}
+ thrownStags=thrownStags.filter(t=>t.t>0&&t.y<650);
+
+ for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;p.glove=false;if(canStand())setH(62);notice='青角パワー回復！';noticeT=120;score+=800}else if(u.type==='glove'){p.big=true;p.glove=true;if(canStand())setH(62);notice=p.blueHorn?'青グローブ！ 耐久力MAX':'グローブ！ Bでパンチ';noticeT=130;score+=800}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
+ pickups=pickups.filter(u=>!u.got);
+ for(let l of airLeaves)if(!l.got&&R(p,l)){l.got=1;stars++;score+=200;debris(l.x-12,l.y-12,4)}
+ for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
+
+ if(p.y>650)hurt();if(p.x>5660){score+=1000;nextStage('world1-3.html');return}
+ cam=Math.max(0,Math.min(WORLD-W,p.x-300));
+}
+
+function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
+
+function draw(){
+ /* DRAW LOOP2 BULLETS */
+ if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
+ g.fillStyle='#17233b';g.fillRect(0,0,W,H);
+ // underground cavern ceiling and distant rock silhouettes
+ g.fillStyle='#293957';for(let i=0;i<18;i++){let x=i*360-cam*.12;g.beginPath();g.arc(x,55+(i%3)*18,95,0,Math.PI);g.fill()}
+ g.fillStyle='#22304b';for(let i=0;i<16;i++){let x=i*430-cam*.3;g.beginPath();g.arc(x,478,120,Math.PI,0);g.fill()}
+ g.save();g.translate(-cam,0);
+
+ for(let q of grounds){g.fillStyle='#5f5968';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#80758b';g.fillRect(q.x,q.y,q.w,9)}
+ for(let l of ledges)if(!l.broken){g.fillStyle='#74677c';g.fillRect(l.x,l.y,l.w,l.h);g.fillStyle='#80758b';g.fillRect(l.x,l.y,l.w,8)}
+
+ for(let b of blocks)if(!b.broken){g.fillStyle=b.hit?'#b99973':b.type==='bluehorn'?'#b9f6ff':b.type==='glove'?'#ffd0b0':'#ffd65a';g.fillRect(b.x,b.y,48,48);g.strokeStyle='#7e613e';g.lineWidth=3;g.strokeRect(b.x+2,b.y+2,44,44);if(!b.hit){if(b.type==='leaf')drawBlueLeaf(b.x+24,b.y+23,.72);else if(b.type==='sap')drawSapBottle(b.x+24,b.y+24,.62);else{g.fillStyle='#fff';g.font='26px sans-serif';g.fillText(b.type==='bluehorn'?'✦':'🥊',b.x+8,b.y+34)}}}
+ for(let u of pickups){
+   if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
+ }
+
+ // wooden tubes
+ for(let q of pipes)if(q.alive){
+   g.fillStyle='#a66d3d';g.strokeStyle='#5c3824';g.lineWidth=4;g.fillRect(q.x+8,q.y,q.w-16,q.h);g.strokeRect(q.x+8,q.y,q.w-16,q.h);
+   for(let yy=q.y+12;yy<q.y+q.h;yy+=22){g.strokeStyle='#7b4d2e';g.beginPath();g.moveTo(q.x+10,yy);g.lineTo(q.x+q.w-10,yy+4);g.stroke()}
+   g.fillStyle='#bd8250';g.fillRect(q.x,q.y,q.w,23);g.strokeStyle='#5c3824';g.strokeRect(q.x,q.y,q.w,23);
+   if(q.rise>.02&&!q.bugDead){
+     let bx=q.x+41, feet=q.y+18-q.rise*62+48;
+     let headY=feet-38, bodyY=feet-19;
+     let jaw=(Math.sin(q.phase*.10)+1)/2,tipGap=3+jaw*25;
+     g.save();g.translate(bx,0);
+     // two human-like legs
+     g.strokeStyle='#53606d';g.lineWidth=5;g.lineCap='round';
+     let step=Math.sin(frame*.18)*3;
+     g.beginPath();g.moveTo(-7,bodyY+10);g.lineTo(-8-step,feet);g.moveTo(7,bodyY+10);g.lineTo(8+step,feet);g.stroke();
+     // humanoid torso
+     g.fillStyle='#8b79a8';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.ellipse(0,bodyY,14,18,0,0,7);g.fill();g.stroke();
+     // arms
+     g.beginPath();g.moveTo(-11,bodyY-5);g.lineTo(-20,bodyY+4);g.moveTo(11,bodyY-5);g.lineTo(20,bodyY+4);g.stroke();
+     // pale character head
+     g.fillStyle='#eadfcf';g.beginPath();g.ellipse(0,headY,13,12,0,0,7);g.fill();g.stroke();
+     g.fillStyle='#53606d';g.beginPath();g.arc(-4,headY,2,0,7);g.arc(4,headY,2,0,7);g.fill();
+     // stag-beetle mandibles retained, opening/closing horizontally
+     g.strokeStyle='#403744';g.lineWidth=8;g.lineCap='round';g.lineJoin='round';g.beginPath();
+     g.moveTo(-8,headY-5);g.quadraticCurveTo(-17-tipGap*.45,headY-15,-tipGap,headY-23);
+     g.moveTo(8,headY-5);g.quadraticCurveTo(17+tipGap*.45,headY-15,tipGap,headY-23);g.stroke();
+     g.lineWidth=5;g.beginPath();g.moveTo(-tipGap,headY-23);g.lineTo(-tipGap+7,headY-19);
+     g.moveTo(tipGap,headY-23);g.lineTo(tipGap-7,headY-19);g.stroke();
+     g.restore();
+   }
+ }
+
+ // thrown stag beetles (large-horn throw result)
+ for(let t of thrownStags){
+   g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);
+   g.fillStyle='#8b79a8';g.strokeStyle='#53606d';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,8,14,18,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#eadfcf';g.beginPath();g.ellipse(0,-11,13,12,0,0,7);g.fill();g.stroke();
+   g.strokeStyle='#403744';g.lineWidth=7;g.lineCap='round';
+   g.beginPath();g.moveTo(-7,-16);g.quadraticCurveTo(-18,-27,-25,-31);g.moveTo(7,-16);g.quadraticCurveTo(18,-27,25,-31);g.stroke();
+   g.restore();
+ }
+
+ // ladybugs
+ for(let a of ants)if(a.alive){
+   let feet=a.y+30, cx=a.x+18;
+   g.save();g.translate(cx,0);if(a.v<0)g.scale(-1,1);
+   if(a.flat){
+     g.fillStyle='#e95d5d';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.ellipse(0,feet-4,17,6,0,0,7);g.fill();g.stroke();
+   }else{
+     let step=Math.sin(frame*.22+a.x*.04)*4;
+     // legs end exactly at feet
+     g.strokeStyle='#53606d';g.lineWidth=5;g.lineCap='round';g.beginPath();
+     g.moveTo(-6,feet-12);g.lineTo(-7-step*.35,feet);
+     g.moveTo(6,feet-12);g.lineTo(7+step*.35,feet);g.stroke();
+     // red ladybug torso
+     g.fillStyle='#ef6670';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.ellipse(0,feet-17,14,16,0,0,7);g.fill();g.stroke();
+     g.strokeStyle='#8c3f49';g.lineWidth=2;g.beginPath();g.moveTo(0,feet-31);g.lineTo(0,feet-4);g.stroke();
+     g.fillStyle='#70414a';
+     for(let dx of [-7,7])for(let yy of [feet-23,feet-13]){g.beginPath();g.arc(dx,yy,2.4,0,7);g.fill()}
+     // arms
+     g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();
+     g.moveTo(-11,feet-22);g.lineTo(-18,feet-14+step*.3);
+     g.moveTo(11,feet-22);g.lineTo(18,feet-14-step*.3);g.stroke();
+     // separate character head
+     g.fillStyle='#f2e5cf';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.arc(0,feet-39,10,0,7);g.fill();g.stroke();
+     g.fillStyle='#53606d';g.beginPath();g.arc(3,feet-41,1.7,0,7);g.fill();
+     g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc(3,feet-36,3,0,Math.PI);g.stroke();
+   }
+   g.restore();
+ }
+ // snails / shells
+ for(let s of snails)if(s.alive){
+   if(!s.shell){g.fillStyle='#8bcf70';g.fillRect(s.x+4,s.y+19,27,15);g.beginPath();g.arc(s.x+29,s.y+17,9,0,7);g.fill();g.strokeStyle='#5d4b3d';g.beginPath();g.moveTo(s.x+31,s.y+9);g.lineTo(s.x+35,s.y+3);g.moveTo(s.x+27,s.y+9);g.lineTo(s.x+24,s.y+3);g.stroke()}
+   g.fillStyle='#c78b55';g.strokeStyle='#6c4b35';g.lineWidth=3;g.beginPath();g.arc(s.x+17,s.y+22,15,0,7);g.fill();g.stroke();g.beginPath();g.arc(s.x+17,s.y+22,8,0,7);g.stroke()
+ }
+
+ // airborne beetle-leaf collectibles
+ for(let l of airLeaves)if(!l.got){let bob=Math.sin(frame*.08+l.x*.02)*3;drawBlueLeaf(l.x+12,l.y+12+bob,.85)}
+
+ // debris
+ for(let d of particles){g.fillStyle='#9b6a43';g.fillRect(d.x,d.y,d.r,d.r)}
+
+ // underground goal: giant tree reaching beyond the top, with daylight pouring down
+ let gx=5587;
+ let glow=g.createLinearGradient(gx,0,gx,480);glow.addColorStop(0,'#fffbdccc');glow.addColorStop(.45,'#fff3a455');glow.addColorStop(1,'#fff3a400');
+ g.fillStyle=glow;g.beginPath();g.moveTo(gx-150,0);g.lineTo(gx+150,0);g.lineTo(gx+72,480);g.lineTo(gx-72,480);g.closePath();g.fill();
+ g.fillStyle='#8a5a32';g.strokeStyle='#5b3b24';g.lineWidth=5;g.beginPath();g.moveTo(gx-27,480);g.lineTo(gx-18,0);g.lineTo(gx+20,0);g.lineTo(gx+30,480);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#6f482b';g.lineWidth=12;g.lineCap='round';g.beginPath();g.moveTo(gx-8,235);g.lineTo(gx-75,155);g.moveTo(gx+9,185);g.lineTo(gx+78,105);g.stroke();
+ g.fillStyle='#70b957';g.strokeStyle='#477d3b';g.lineWidth=4;
+ for(const [tx,ty,tr] of [[gx-82,135,48],[gx+83,88,52],[gx-30,55,58],[gx+35,28,62]]){g.beginPath();g.arc(tx,ty,tr,0,7);g.fill();g.stroke()}
+
+ // player: pastel bipedal rhinoceros-beetle hero
+ if(!(p.inv&&Math.floor(p.inv/5)%2)){
+   let cx=p.x+p.w/2,foot=p.y+p.h,moving=Math.abs(p.vx)>.35,air=!p.on,bob=moving&&!air?Math.sin(p.anim)*2:0,leg=moving&&!air?Math.sin(p.anim)*5:0;
+   let bodyH=p.big?27:20,headR=p.big?17:14;
+   let headY=p.crouch?foot-34:foot-bodyH-headR+bob;
+   let bodyY=p.crouch?foot-16:foot-bodyH/2+bob-2;
+   g.save();g.translate(cx,0);if(p.face<0)g.scale(-1,1);
+   // Horn scoop ducks only the head; torso and feet stay planted.
+   let headAttackDrop=0;
+   if(p.hornT&&!p.attackUp){let e=18-p.hornT;if(e<5)headAttackDrop=5*(e/5);else if(e<12)headAttackDrop=5-4*((e-5)/7);else headAttackDrop=1*(1-Math.min(1,(e-12)/6));}
+   headY+=headAttackDrop;
+   // locomotion: biped normally, four grounded limbs when powered-up crouching
+   g.strokeStyle='#53606d';g.lineWidth=5;g.lineCap='round';g.beginPath();
+   if(p.crouch){
+     // Crouch stays bipedal: knees bend and the torso/head lower instead of growing four long limbs.
+     g.moveTo(-7,bodyY+6);g.lineTo(-11,foot-6);g.lineTo(-8,foot);
+     g.moveTo(7,bodyY+6);g.lineTo(11,foot-6);g.lineTo(8,foot);
+   }else if(air){
+     g.moveTo(-7,foot-9);g.lineTo(-14,foot-3);g.moveTo(7,foot-9);g.lineTo(14,foot-6);
+   }else{
+     g.moveTo(-7,foot-9);g.lineTo(-7-leg*.55,foot);g.moveTo(7,foot-9);g.lineTo(7+leg*.55,foot);
+   }g.stroke();
+   // Glide apparatus is on the far/back side. Draw it first so the torso hides almost all of it.
+   if(p.glide){
+     let flap=Math.sin(frame*.28)*.7;
+     g.save();
+     // opened wing-case: only the rear rim peeks out behind the silhouette
+     g.fillStyle='#7fcfbe';g.strokeStyle='#53606d';g.lineWidth=2;
+     g.beginPath();g.ellipse(-13,bodyY-2,9,5,-.55,0,Math.PI*2);g.fill();g.stroke();
+     // flight wing: a tiny translucent tip behind the back, never crossing the belly/front
+     g.globalAlpha=.68;g.fillStyle='#e8fbff';g.strokeStyle='#79adba';g.lineWidth=1.3;
+     g.beginPath();g.ellipse(-16,bodyY+5+flap,10,4,-.35,0,Math.PI*2);g.fill();g.stroke();
+     g.restore();
+   }
+   // body, soft mint/sky palette
+   g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,bodyY,14,bodyH/2,0,0,7);g.fill();g.stroke();
+   // pale wing-case seam
+   g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();
+   // back arm
+   let arm=air?-7:(moving?Math.sin(p.anim+Math.PI)*4:1);g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(-11,bodyY-2);g.lineTo(-17,bodyY+arm);g.stroke();
+   // punch arm/glove
+   if(p.glove){let reach=p.punchT?28:4,fx=20+reach,fy=bodyY-4;g.strokeStyle='#c9f0df';g.lineWidth=7;g.beginPath();g.moveTo(10,bodyY-3);g.lineTo(fx-8,fy);g.stroke();g.fillStyle=(p.blueHorn&&p.glove)?'#27b8ff':'#ef6f78';g.strokeStyle=(p.blueHorn&&p.glove)?'#d9fbff':'#53606d';g.lineWidth=3;g.beginPath();g.arc(fx,fy,9,0,7);g.fill();g.stroke()}
+   else{g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(11,bodyY-2);g.lineTo(17,bodyY-arm);g.stroke()}
+   // head
+   g.fillStyle='#d8f3df';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(p.crouch?6:0,headY,headR,headR*.9,0,0,7);g.fill();g.stroke();
+   // Horn remains rooted at the original forehead; the body crouches for the low scoop.
+   let hornAngle=(p.hornT&&p.attackUp)?-90:-48;
+   if(p.hornT&&!p.attackUp){let e=18-p.hornT;if(e<5)hornAngle=-38;else if(e<12){let t=(e-5)/7;hornAngle=-38-45*t}else{let t=Math.min(1,(e-12)/6);hornAngle=-83+35*t}}
+   let hrLen=p.big?30:19,baseX=(p.crouch?12:7),baseY=headY-headR*.78,ang=hornAngle*Math.PI/180;
+   let tipX=baseX+Math.cos(ang)*hrLen,tipY=baseY+Math.sin(ang)*hrLen;
+   g.fillStyle=p.blueHorn?'#d9fbff':'#86c8d8';g.strokeStyle=p.blueHorn?'#62eaff':'#53606d';g.lineWidth=p.blueHorn?4:3;if(p.blueHorn){g.shadowColor='#6eeeff';g.shadowBlur=14}g.beginPath();
+   g.moveTo(baseX,baseY+5);g.quadraticCurveTo((baseX+tipX)/2+5,(baseY+tipY)/2+4,tipX,tipY);
+   g.quadraticCurveTo(tipX+5,tipY+5,baseX+8,baseY+10);g.closePath();g.fill();g.stroke();
+   if(p.hornT<=12&&p.hornT>=6){g.strokeStyle='#ffffffaa';g.lineWidth=3;g.beginPath();g.arc(7,headY-3,p.big?40:29,-.55,-1.42,true);g.stroke()}
+   // eyes + smile
+   g.fillStyle='#43505d';g.beginPath();g.arc((p.crouch?10:4),headY-2,2.3,0,7);g.arc((p.crouch?16:10),headY-2,2.3,0,7);g.fill();
+   g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc((p.crouch?13:7),headY+5,4,0,Math.PI);g.stroke();
+   g.restore();
+ }
+ g.restore();
+
+ g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-2',720,30);
+ if(noticeT){g.fillStyle='#0009';g.fillRect(260,75,440,42);g.fillStyle='#fff';g.font='bold 20px sans-serif';g.fillText(notice,340,103)}
+ if(dead){g.fillStyle='#0009';g.fillRect(0,0,W,H);g.fillStyle='#fff';g.font='bold 42px sans-serif';g.fillText('しょんぼり…',350,270)}
+ if(won){g.fillStyle='#0009';g.fillRect(0,0,W,H);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.fillText('やったー！',365,235);g.font='25px sans-serif';g.fillText('ゴール！ SCORE '+score,330,285)}
+
+
+}
+function loop(){update();draw();requestAnimationFrame(loop)}loop();
+</script>
+</body></html>
