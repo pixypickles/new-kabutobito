@@ -45,3 +45,5 @@ GitHub Pages を有効にすると `index.html` からそのまま遊べます�
 - Fixed Horn Dash velocity being overwritten by normal movement on the next frame.
 - Command remains: forward, release, forward, then B within the short input window.
 - During Horn Dash, speed is locked at 10.8 for the full dash duration.
+
+v34: ホーンダッシュ時も通常時の丸い頭・丸い胴体の比率を維持。角は額から生える湾曲したカブト角に戻し、脚は空中で後方へ流す専用ポーズに修正。
