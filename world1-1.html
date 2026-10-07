@@ -496,11 +496,12 @@ function draw(){
      let baseX=headX+headR*.68,baseY=headY-headR*.40,tipX=baseX+hrLen,tipY=headY-5;
      g.fillStyle=p.blueHorn?'#a8f4ff':'#86c8d8';g.strokeStyle=p.blueHorn?'#eaffff':'#53606d';g.lineWidth=3;
      if(p.blueHorn){g.shadowColor='#8fefff';g.shadowBlur=14}
+     // Slim sickle-shaped horn: nearly even thickness, with only the tip curling upward.
+     let hornBaseTopY=baseY-2,hornBaseBotY=baseY+4;
      g.beginPath();
-     g.moveTo(baseX-2,baseY+6);
-     g.quadraticCurveTo(baseX+hrLen*.28,baseY+10,tipX,tipY);
-     g.quadraticCurveTo(baseX+hrLen*.72,baseY-9,baseX+hrLen*.22,baseY-10);
-     g.quadraticCurveTo(baseX+5,baseY-8,baseX-2,baseY+6);
+     g.moveTo(baseX-2,hornBaseBotY);
+     g.bezierCurveTo(baseX+hrLen*.34,baseY+6,baseX+hrLen*.72,baseY+5,tipX,tipY-4);
+     g.bezierCurveTo(baseX+hrLen*.82,baseY-1,baseX+hrLen*.42,baseY-2,baseX-1,hornBaseTopY);
      g.closePath();g.fill();g.stroke();g.shadowBlur=0;
      // one visible eye and a small determined smile; face stays on the head, not at the horn base
      g.fillStyle='#43505d';g.beginPath();g.arc(headX+5,headY-3,2.3,0,7);g.fill();
