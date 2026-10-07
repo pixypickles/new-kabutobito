@@ -40,3 +40,8 @@ GitHub Pages を有効にすると `index.html` からそのまま遊べます�
 - 方向入力を離す: 壁から手を離す
 
 ※ 現段階では巨大樹ステージ化前の試作のため、既存の横壁を「つかまれる壁」として扱っています。今後、樹皮・木の幹だけに限定可能です。
+
+## v31 update
+- Fixed Horn Dash velocity being overwritten by normal movement on the next frame.
+- Command remains: forward, release, forward, then B within the short input window.
+- During Horn Dash, speed is locked at 10.8 for the full dash duration.

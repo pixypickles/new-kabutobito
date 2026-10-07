@@ -190,7 +190,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  prevHornL=!!L;prevHornR=!!Rt;if(hornReadyT>0)hornReadyT--;
  p.lookUp=!!U&&p.on&&!D;
  if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
- let max=p.crouch?2.2:7.2;if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;
+ let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*10.8}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
  // Beetle wall-cling: hold toward a wall; A/Z jumps away from it.
  if(p.wallGrab){let holding=(p.wallDir<0&&L)||(p.wallDir>0&&Rt);if(!holding){p.wallGrab=false}else{p.vx=0;p.vy=0;p.glide=false;if(J&&!jumpHeld){p.wallGrab=false;p.wallLock=10;p.vx=-p.wallDir*8.8;p.vy=-16.2;p.face=-p.wallDir}}}
  if(J&&p.on&&!jumpHeld){if(p.crouch&&canStand()){setH(62);p.crouch=false}p.vy=-17.6;p.on=false}
