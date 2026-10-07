@@ -190,7 +190,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(hornEdgeDir){if(hornTapDir===hornEdgeDir&&frame-hornTapFrame<=20){hornReadyDir=hornEdgeDir;hornReadyT=30;hornTapDir=0;hornTapFrame=-999}else{hornTapDir=hornEdgeDir;hornTapFrame=frame}}
  prevHornL=!!L;prevHornR=!!Rt;if(hornReadyT>0)hornReadyT--;
  if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
- let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*11.6}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
+ let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*13.2}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
  // Beetle wall-cling: hold toward a wall; A/Z jumps away from it.
  if(p.wallGrab){let holding=(p.wallDir<0&&L)||(p.wallDir>0&&Rt);if(!holding){p.wallGrab=false}else{p.vx=0;p.vy=0;p.glide=false;if(J&&!jumpHeld){p.wallGrab=false;p.wallLock=10;p.vx=-p.wallDir*8.8;p.vy=-16.2;p.face=-p.wallDir}}}
  if(J&&p.on&&!jumpHeld){if(p.crouch&&canStand()){setH(62);p.crouch=false}p.vy=-17.6;p.on=false}
@@ -201,7 +201,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch&&!hornBHeld){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
-   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=14;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*11.6;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
+   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
    else if((!p.glove||p.blueHorn)&&p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
@@ -477,7 +477,33 @@ function draw(){
 
  // player: pastel bipedal rhinoceros-beetle hero
  if(!(p.inv&&Math.floor(p.inv/5)%2)){
-   let cx=p.x+p.w/2,foot=p.y+p.h,moving=Math.abs(p.vx)>.35,air=!p.on,bob=moving&&!air?Math.sin(p.anim)*2:0,leg=moving&&!air?Math.sin(p.anim)*5:0;
+   let cx=p.x+p.w/2;
+   if(p.hornDashT){
+     // Super-headbutt style horn charge: whole body launches horizontally, horn first.
+     let cy=p.y+p.h/2;
+     g.save();g.translate(cx,cy);if(p.face<0)g.scale(-1,1);
+     // speed streaks
+     g.strokeStyle='#ffffff99';g.lineWidth=3;g.lineCap='round';
+     for(const yy of [-15,0,15]){g.beginPath();g.moveTo(-48,yy);g.lineTo(-24,yy);g.stroke()}
+     // tucked legs
+     g.strokeStyle='#53606d';g.lineWidth=5;g.beginPath();g.moveTo(-5,9);g.lineTo(-15,17);g.moveTo(7,9);g.lineTo(-7,20);g.stroke();
+     // horizontal body
+     g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.beginPath();g.ellipse(-3,3,p.big?22:19,p.big?14:12,-.12,0,7);g.fill();g.stroke();
+     // head thrust forward
+     g.fillStyle='#d8f3df';g.beginPath();g.ellipse(17,-3,p.big?17:14,p.big?15:12,-.18,0,7);g.fill();g.stroke();
+     // long, level horn
+     let len=p.big?43:34;
+     g.fillStyle=p.blueHorn?'#d9fbff':'#86c8d8';g.strokeStyle=p.blueHorn?'#62eaff':'#53606d';g.lineWidth=p.blueHorn?4:3;
+     if(p.blueHorn){g.shadowColor='#6eeeff';g.shadowBlur=14}
+     g.beginPath();g.moveTo(25,-10);g.quadraticCurveTo(39,-10,25+len,-6);g.quadraticCurveTo(42,-1,27,-2);g.closePath();g.fill();g.stroke();
+     g.shadowBlur=0;
+     // determined eye
+     g.fillStyle='#43505d';g.beginPath();g.arc(21,-6,2.5,0,7);g.fill();
+     g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.moveTo(16,-10);g.lineTo(23,-12);g.stroke();
+     g.restore();
+   }else{
+   let foot=p.y+p.h,moving=Math.abs(p.vx)>.35,air=!p.on,bob=moving&&!air?Math.sin(p.anim)*2:0,leg=moving&&!air?Math.sin(p.anim)*5:0;
    let bodyH=p.big?27:20,headR=p.big?17:14;
    let headY=p.crouch?foot-34:foot-bodyH-headR+bob;
    let bodyY=p.crouch?foot-16:foot-bodyH/2+bob-2;
@@ -534,6 +560,7 @@ function draw(){
    g.fillStyle='#43505d';g.beginPath();g.arc((p.crouch?10:4),headY-2,2.3,0,7);g.arc((p.crouch?16:10),headY-2,2.3,0,7);g.fill();
    g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc((p.crouch?13:7),headY+5,4,0,Math.PI);g.stroke();
    g.restore();
+   }
  }
  g.restore();
 
