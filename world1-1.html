@@ -56,11 +56,12 @@ const ledges=[
 ];
 // No floating blocks in the forest stage. Power-ups/collectibles live in the scenery instead.
 let blocks=[];
-// These are hollow branch stumps where stag-beetle folk emerge.
-let pipes=[
- {x:1130,y:374,w:82,h:96,alive:1,phase:0},
- {x:2870,y:350,w:82,h:120,alive:1,phase:85},
- {x:4380,y:374,w:82,h:96,alive:1,phase:165}
+// No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
+let pipes=[];
+let flyingStags=[
+ {x:1180,y:245,baseY:245,vx:1.35,phase:0,alive:1,w:52,h:48},
+ {x:2860,y:250,baseY:250,vx:-1.45,phase:70,alive:1,w:52,h:48},
+ {x:4410,y:235,baseY:235,vx:1.55,phase:145,alive:1,w:52,h:48}
 ];
 // Forest insect folk: ladybug walkers and snail folk.
 let ants=[
@@ -73,6 +74,16 @@ let snails=[
  {x:3950,y:417,v:-.8,alive:1,shell:0,shellV:0},{x:5200,y:442,v:-.75,alive:1,shell:0,shellV:0}
 ];
 let pickups=[],particles=[],thrownStags=[];
+// Discolored bark can be opened with the horn. Sap stays on the tree instead of appearing in a bottle.
+let sapSpots=[
+ {x:742,y:300,w:42,h:58,hit:0,sap:0},{x:1790,y:205,w:46,h:62,hit:0,sap:0},
+ {x:3690,y:260,w:44,h:60,hit:0,sap:0},{x:4960,y:315,w:46,h:60,hit:0,sap:0}
+];
+// Small blue berries grow directly from branches. One berry is worth five blue leaves.
+let blueBerries=[
+ {x:700,y:360,got:0},{x:1360,y:135,got:0},{x:2120,y:195,got:0},
+ {x:3220,y:265,got:0},{x:4010,y:275,got:0},{x:4780,y:260,got:0},{x:5310,y:430,got:0}
+].map(q=>({...q,w:24,h:24}));
 let airLeaves=[{x:710,y:345},{x:900,y:290},{x:1090,y:235},{x:1300,y:180},{x:1510,y:125},{x:1740,y:78},{x:2040,y:130},{x:2280,y:190},{x:2480,y:255},{x:3080,y:260},{x:3340,y:200},{x:3600,y:145},{x:3880,y:200},{x:4140,y:265},{x:4560,y:305},{x:4840,y:255}].map(q=>({...q,w:24,h:24,got:0}));
 
 /* LOOP2 ENHANCER */
@@ -248,6 +259,10 @@ if(keys.punch&&!hornBHeld){
    for(let b of loopBursts)b.t--;loopBursts=loopBursts.filter(b=>b.t>0);
  }
  if(hornHit){
+   // Horn exploration: crack discolored bark and expose fresh tree sap.
+   for(let sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){sp.hit=1;sp.sap=1;score+=150;notice='樹液が出てきた！';noticeT=75;debris(sp.x,sp.y,5)}
+   // Flying stag beetles can be knocked out of the air with the horn.
+   for(let f of flyingStags)if(f.alive&&R(hornHit,{x:f.x,y:f.y,w:f.w,h:f.h})){f.alive=0;score+=350;debris(f.x,f.y,8)}
    /* BLUE HORN TERRAIN BREAK */
    if(p.blueHorn){
      if(typeof blocks!=='undefined')for(let b of blocks)if(!b.broken&&R(hornHit,{x:b.x,y:b.y,w:48,h:48})){if(typeof breakBlock==='function')breakBlock(b);else b.broken=1}
@@ -337,16 +352,16 @@ if(keys.punch&&!hornBHeld){
    else hurt();
  }
 
- // Wooden tubes and stag beetles.
- for(let q of pipes){
-   if(!q.alive)continue;
-   if(q.stagGone){q.rise=0;q.bugDead=1;continue}
-   if(q.bugDead){q.rise=0;if(q.respawnT>0)q.respawnT--;else{q.bugDead=0;q.phase=0}continue}
-   q.phase=(q.phase+1)%240;
-   let r=q.phase<45?q.phase/45:q.phase<120?1:q.phase<165?1-(q.phase-120)/45:0;q.rise=r;
-   q.bug={x:q.x+5,y:q.y-12-r*62,w:72,h:64};
-   if(r>.15&&R(p,q.bug)&&p.hornT<=0)hurt();
+ // Flying stag-beetle folk patrol the open air instead of hiding in tubes.
+ for(let f of flyingStags){
+   if(!f.alive)continue;f.phase+=.055;f.x+=f.vx;f.y=f.baseY+Math.sin(f.phase)*34;
+   if(f.x<900||f.x>5350)f.vx*=-1;
+   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
+ // Fresh sap can be touched directly on the bark for a small recovery/power-up.
+ for(let sp of sapSpots)if(sp.sap&&R(p,{x:sp.x-5,y:sp.y+18,w:sp.w+18,h:sp.h})){sp.sap=0;p.big=true;if(canStand())setH(62);score+=500;notice='樹液パワー！';noticeT=80}
+ // Blue berries are deliberately chunky rewards: five leaves at once.
+ for(let b of blueBerries)if(!b.got&&R(p,b)){b.got=1;stars+=5;score+=700;notice='青い木の実  +5';noticeT=80;debris(b.x,b.y,5)}
 
  for(let t of thrownStags){t.x+=t.vx;t.y+=t.vy;t.vy+=.55;t.rot+=t.vr;t.t--}
  thrownStags=thrownStags.filter(t=>t.t>0&&t.y<650);
@@ -397,40 +412,32 @@ function draw(){
  for(let l of ledges)if(!l.broken)drawBranch(l,true);
  // giant leaves around the route; decorative, not invisible blocks
  for(const L of [[520,365,72,34,-.25],[930,245,82,38,.18],[1510,75,90,42,-.12],[2220,155,76,35,.28],[3170,205,88,40,-.2],[3890,150,82,38,.2],[4700,250,95,44,-.18],[5350,390,100,46,.12]])giantLeaf(...L);
+ // Bark clues: small, naturally discolored patches. Horn hits make amber sap bead and drip from the wound.
+ for(let sp of sapSpots){
+   g.save();g.translate(sp.x+sp.w/2,sp.y+sp.h/2);g.fillStyle=sp.hit?'#5b3929':'#5e4a35';g.strokeStyle=sp.hit?'#3f291f':'#8a6d49';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,0,sp.w*.42,sp.h*.43,-.18,0,7);g.fill();g.stroke();
+   if(sp.hit){g.strokeStyle='#3b261e';g.lineWidth=3;g.beginPath();g.moveTo(-10,-12);g.lineTo(5,-2);g.lineTo(-3,10);g.stroke()}
+   if(sp.sap){g.fillStyle='#e3a12f';g.strokeStyle='#8c5a18';g.lineWidth=2;g.beginPath();g.arc(5,7,9,0,7);g.fill();g.stroke();g.beginPath();g.ellipse(7,21,5,11,0,0,7);g.fill();g.stroke()}
+   g.restore();
+ }
+ // Berry twigs: tiny blue fruit clusters attached to the branch, never floating in item boxes.
+ for(let b of blueBerries)if(!b.got){g.strokeStyle='#4c713e';g.lineWidth=3;g.beginPath();g.moveTo(b.x+12,b.y+2);g.lineTo(b.x+12,b.y+10);g.stroke();g.fillStyle='#3f8fd8';g.strokeStyle='#225986';g.lineWidth=2;for(const [dx,dy] of [[7,13],[16,13],[11,20]]){g.beginPath();g.arc(b.x+dx,b.y+dy,6,0,7);g.fill();g.stroke()}}
+
  for(let u of pickups){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
- // hollow branch stumps: stag-beetle folk emerge from natural tree hollows
- for(let q of pipes)if(q.alive){
-   g.fillStyle='#70472f';g.strokeStyle='#493022';g.lineWidth=4;g.beginPath();g.roundRect(q.x+8,q.y,q.w-16,q.h,18);g.fill();g.stroke();
-   for(let yy=q.y+12;yy<q.y+q.h;yy+=22){g.strokeStyle='#7b4d2e';g.beginPath();g.moveTo(q.x+10,yy);g.lineTo(q.x+q.w-10,yy+4);g.stroke()}
-   g.fillStyle='#34261f';g.strokeStyle='#9a6b43';g.lineWidth=6;g.beginPath();g.ellipse(q.x+q.w/2,q.y+12,q.w/2-2,15,0,0,7);g.fill();g.stroke();
-   if(q.rise>.02&&!q.bugDead){
-     let bx=q.x+41, feet=q.y+18-q.rise*62+48;
-     let headY=feet-38, bodyY=feet-19;
-     let jaw=(Math.sin(q.phase*.10)+1)/2,tipGap=3+jaw*25;
-     g.save();g.translate(bx,0);
-     // two human-like legs
-     g.strokeStyle='#53606d';g.lineWidth=5;g.lineCap='round';
-     let step=Math.sin(frame*.18)*3;
-     g.beginPath();g.moveTo(-7,bodyY+10);g.lineTo(-8-step,feet);g.moveTo(7,bodyY+10);g.lineTo(8+step,feet);g.stroke();
-     // humanoid torso
-     g.fillStyle='#8b79a8';g.strokeStyle='#53606d';g.lineWidth=3;
-     g.beginPath();g.ellipse(0,bodyY,14,18,0,0,7);g.fill();g.stroke();
-     // arms
-     g.beginPath();g.moveTo(-11,bodyY-5);g.lineTo(-20,bodyY+4);g.moveTo(11,bodyY-5);g.lineTo(20,bodyY+4);g.stroke();
-     // pale character head
-     g.fillStyle='#eadfcf';g.beginPath();g.ellipse(0,headY,13,12,0,0,7);g.fill();g.stroke();
-     g.fillStyle='#53606d';g.beginPath();g.arc(-4,headY,2,0,7);g.arc(4,headY,2,0,7);g.fill();
-     // stag-beetle mandibles retained, opening/closing horizontally
-     g.strokeStyle='#403744';g.lineWidth=8;g.lineCap='round';g.lineJoin='round';g.beginPath();
-     g.moveTo(-8,headY-5);g.quadraticCurveTo(-17-tipGap*.45,headY-15,-tipGap,headY-23);
-     g.moveTo(8,headY-5);g.quadraticCurveTo(17+tipGap*.45,headY-15,tipGap,headY-23);g.stroke();
-     g.lineWidth=5;g.beginPath();g.moveTo(-tipGap,headY-23);g.lineTo(-tipGap+7,headY-19);
-     g.moveTo(tipGap,headY-23);g.lineTo(tipGap-7,headY-19);g.stroke();
-     g.restore();
-   }
+ // Flying stag-beetle folk: humanoid bodies, beetle wings, and large mandibles.
+ for(let f of flyingStags)if(f.alive){
+   let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.55+f.phase)*9;
+   g.save();g.translate(cx,cy);if(f.vx<0)g.scale(-1,1);
+   g.fillStyle='#d9f0e7aa';g.strokeStyle='#617a74';g.lineWidth=2;
+   g.beginPath();g.ellipse(-13,-2,15,8,-.45,0,7);g.fill();g.stroke();g.beginPath();g.ellipse(-12,5,15,8,.45,0,7);g.fill();g.stroke();
+   g.strokeStyle='#53606d';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(-7,10);g.lineTo(-13,20+flap*.12);g.moveTo(5,10);g.lineTo(1,20-flap*.12);g.stroke();
+   g.fillStyle='#806b9b';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(0,5,12,16,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#eadfcf';g.beginPath();g.arc(7,-14,11,0,7);g.fill();g.stroke();g.fillStyle='#53606d';g.beginPath();g.arc(11,-16,1.8,0,7);g.fill();
+   g.strokeStyle='#403744';g.lineWidth=6;g.beginPath();g.moveTo(12,-20);g.quadraticCurveTo(24,-29,30,-24);g.moveTo(12,-12);g.quadraticCurveTo(25,-8,31,-14);g.stroke();
+   g.restore();
  }
 
  // thrown stag beetles (large-horn throw result)

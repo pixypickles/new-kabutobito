@@ -61,3 +61,6 @@ Horn Dash now uses a horizontal airborne pose while preserving the hero’s comp
 - WORLD 1-1 only: added vertical camera follow test.
 - Added a staircase of high ledges around the early-middle section for climbing tests.
 - Other stages and core actions are unchanged from v38.
+
+
+v41: WORLD 1-1 forest systems: removed stump/pipe stag beetles, added flying stag-beetle folk, horn-reactive sap bark patches with direct tree sap, and branch-grown blue berries worth 5 blue leaves.
