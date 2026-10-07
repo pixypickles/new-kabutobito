@@ -35,7 +35,7 @@ canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-renderin
 const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
 const W=960,H=540,GROUND=480,WORLD=6000;
-let keys={},cam=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
+let keys={},cam=0,camY=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
 const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
 if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
 
@@ -47,6 +47,9 @@ const grounds=[
 const ledges=[
  {x:2000,y:352,w:144,h:48},{x:2400,y:352,w:144,h:48},{x:3300,y:352,w:144,h:48},
  {x:4210,y:352,w:144,h:48},
+ // v39 vertical-camera test tower: climb these without changing the rest of 1-1
+ {x:1320,y:420,w:120,h:28},{x:1450,y:360,w:120,h:28},{x:1580,y:300,w:120,h:28},
+ {x:1710,y:240,w:120,h:28},{x:1840,y:180,w:120,h:28},{x:1970,y:120,w:150,h:28},
  {x:4680,y:288,w:48,h:192},{x:4728,y:336,w:48,h:144},{x:4776,y:384,w:48,h:96},{x:4824,y:432,w:48,h:48}
 ];
 let blocks=[
@@ -355,17 +358,21 @@ if(keys.punch&&!hornBHeld){
  if(p.y>650)hurt();
  if(!stageExit&&p.x>5660){stageExit=1;score+=1000;nextStage('world1-2.html');}
  cam=Math.max(0,Math.min(WORLD-W,p.x-300));
+ // v39: vertical camera only moves when the player climbs above the normal play band.
+ // Negative camY means the view has climbed upward; easing keeps it gentle.
+ let targetCamY=Math.max(-300,Math.min(0,p.y-270));
+ camY+=(targetCamY-camY)*0.12;
 }
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
 
 function draw(){
  /* DRAW LOOP2 BULLETS */
- if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
+ if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
  g.fillStyle='#76d2ef';g.fillRect(0,0,W,H);
- for(let i=0;i<12;i++)cloud(i*570-cam*.18,80+(i%3)*45);
+ for(let i=0;i<12;i++)cloud(i*570-cam*.18,80+(i%3)*45-camY*.18);
  g.fillStyle='#a9e37d';for(let i=0;i<14;i++){let x=i*470-cam*.45;g.beginPath();g.arc(x,478,100,Math.PI,0);g.fill()}
- g.save();g.translate(-cam,0);
+ g.save();g.translate(-cam,-camY);
 
  for(let q of grounds){g.fillStyle='#79b84c';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#5c913d';g.fillRect(q.x,q.y,q.w,9)}
  for(let l of ledges)if(!l.broken){g.fillStyle='#e8b66b';g.fillRect(l.x,l.y,l.w,l.h);g.fillStyle='#5c913d';g.fillRect(l.x,l.y,l.w,8)}

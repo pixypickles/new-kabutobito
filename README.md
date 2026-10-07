@@ -56,3 +56,8 @@ v35: ホーンダッシュ時も通常時の丸い頭・丸い胴体の比率を
 
 ## v35 horn-dash pose
 Horn Dash now uses a horizontal airborne pose while preserving the hero’s compact round head and torso. The curved beetle horn grows naturally from the forehead and points forward; limbs trail in the air.
+
+## v39 test
+- WORLD 1-1 only: added vertical camera follow test.
+- Added a staircase of high ledges around the early-middle section for climbing tests.
+- Other stages and core actions are unchanged from v38.
