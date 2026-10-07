@@ -41,38 +41,39 @@ if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h
 
 
 const grounds=[
- {x:0,y:GROUND,w:850,h:60},{x:970,y:GROUND,w:720,h:60},{x:1810,y:GROUND,w:1000,h:60},
- {x:2950,y:GROUND,w:780,h:60},{x:3870,y:GROUND,w:1050,h:60},{x:5050,y:GROUND,w:950,h:60}
+ // Giant lower branches. Collision stays simple; the drawing below makes them organic.
+ {x:0,y:480,w:780,h:70},{x:900,y:470,w:650,h:80},{x:1680,y:455,w:720,h:95},
+ {x:2530,y:470,w:650,h:80},{x:3310,y:455,w:760,h:95},{x:4200,y:470,w:760,h:80},{x:5090,y:480,w:910,h:70}
 ];
 const ledges=[
- {x:2000,y:352,w:144,h:48},{x:2400,y:352,w:144,h:48},{x:3300,y:352,w:144,h:48},
- {x:4210,y:352,w:144,h:48},
- // v39 vertical-camera test tower: climb these without changing the rest of 1-1
- {x:1320,y:420,w:120,h:28},{x:1450,y:360,w:120,h:28},{x:1580,y:300,w:120,h:28},
- {x:1710,y:240,w:120,h:28},{x:1840,y:180,w:120,h:28},{x:1970,y:120,w:150,h:28},
- {x:4680,y:288,w:48,h:192},{x:4728,y:336,w:48,h:144},{x:4776,y:384,w:48,h:96},{x:4824,y:432,w:48,h:48}
+ // Branches climb diagonally around a huge trunk, then descend into the upper canopy route.
+ {x:650,y:390,w:190,h:28},{x:820,y:335,w:210,h:28},{x:1010,y:280,w:220,h:28},
+ {x:1200,y:225,w:230,h:28},{x:1400,y:170,w:230,h:28},{x:1600,y:120,w:260,h:28},
+ {x:1900,y:175,w:250,h:28},{x:2150,y:235,w:230,h:28},{x:2380,y:300,w:250,h:28},
+ {x:2760,y:360,w:220,h:28},{x:3020,y:305,w:230,h:28},{x:3260,y:245,w:250,h:28},
+ {x:3520,y:190,w:260,h:28},{x:3800,y:245,w:230,h:28},{x:4050,y:310,w:250,h:28},
+ {x:4480,y:350,w:230,h:28},{x:4760,y:300,w:220,h:28}
 ];
-let blocks=[
- {x:568,y:304,type:'sap'},{x:710,y:352,type:'leaf'},{x:1120,y:336,type:'leaf'},
- {x:2048,y:256,type:'sap'},{x:2400,y:256,type:'leaf'},{x:2496,y:256,type:'leaf'},
- {x:3300,y:256,type:'sap'},{x:4258,y:256,type:'leaf'}
-];
+// No floating blocks in the forest stage. Power-ups/collectibles live in the scenery instead.
+let blocks=[];
+// These are hollow branch stumps where stag-beetle folk emerge.
 let pipes=[
- {x:1180,y:GROUND-96,w:82,h:96,alive:1,phase:0},
- {x:2320,y:GROUND-120,w:82,h:120,alive:1,phase:85},
- {x:4100,y:GROUND-96,w:82,h:96,alive:1,phase:165}
+ {x:1130,y:374,w:82,h:96,alive:1,phase:0},
+ {x:2870,y:350,w:82,h:120,alive:1,phase:85},
+ {x:4380,y:374,w:82,h:96,alive:1,phase:165}
 ];
+// Forest insect folk: ladybug walkers and snail folk.
 let ants=[
- {x:760,y:GROUND-30,v:-1.15,alive:1,flat:0},{x:1360,y:GROUND-30,v:-1.05,alive:1,flat:0},
- {x:2190,y:GROUND-30,v:-1.2,alive:1,flat:0},{x:3470,y:GROUND-30,v:-1.1,alive:1,flat:0},
- {x:4430,y:GROUND-30,v:-1.15,alive:1,flat:0}
+ {x:520,y:450,v:-1.15,alive:1,flat:0},{x:1030,y:440,v:-1.05,alive:1,flat:0},
+ {x:2050,y:425,v:-1.2,alive:1,flat:0},{x:3460,y:425,v:-1.1,alive:1,flat:0},
+ {x:4560,y:440,v:-1.15,alive:1,flat:0},{x:5350,y:450,v:-1.1,alive:1,flat:0}
 ];
 let snails=[
- {x:1460,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0},{x:2580,y:GROUND-38,v:-.75,alive:1,shell:0,shellV:0},
- {x:4150,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0}
+ {x:1380,y:432,v:-.8,alive:1,shell:0,shellV:0},{x:2660,y:432,v:-.75,alive:1,shell:0,shellV:0},
+ {x:3950,y:417,v:-.8,alive:1,shell:0,shellV:0},{x:5200,y:442,v:-.75,alive:1,shell:0,shellV:0}
 ];
 let pickups=[],particles=[],thrownStags=[];
-let airLeaves=[{x:920,y:350},{x:1010,y:310},{x:1100,y:350},{x:1730,y:330},{x:1810,y:285},{x:1890,y:330},{x:2860,y:345},{x:2940,y:300},{x:3020,y:345},{x:4930,y:320},{x:5010,y:275},{x:5090,y:320}].map(q=>({...q,w:24,h:24,got:0}));
+let airLeaves=[{x:710,y:345},{x:900,y:290},{x:1090,y:235},{x:1300,y:180},{x:1510,y:125},{x:1740,y:78},{x:2040,y:130},{x:2280,y:190},{x:2480,y:255},{x:3080,y:260},{x:3340,y:200},{x:3600,y:145},{x:3880,y:200},{x:4140,y:265},{x:4560,y:305},{x:4840,y:255}].map(q=>({...q,w:24,h:24,got:0}));
 
 /* LOOP2 ENHANCER */
 if(LOOP2){
@@ -366,27 +367,45 @@ if(keys.punch&&!hornBHeld){
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
 
+function drawForestBackdrop(){
+ // Deep forest rather than open sky.
+ let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#183f3a');grad.addColorStop(.55,'#3f7650');grad.addColorStop(1,'#8dbb68');g.fillStyle=grad;g.fillRect(0,0,W,H);
+ // distant trunks with parallax
+ for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#315d43':'#294f3c';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
+ // huge soft leaf masses overhead
+ for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#4f8f55':'#5c9e5d';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
+ // shafts of light
+ g.save();g.globalAlpha=.10;g.fillStyle='#fff7bd';for(let i=0;i<5;i++){let x=80+i*230-(cam*.04%230);g.beginPath();g.moveTo(x,-20);g.lineTo(x+95,-20);g.lineTo(x+210,H);g.lineTo(x+120,H);g.closePath();g.fill()}g.restore();
+}
+function drawBranch(q,small=false){
+ let r=small?Math.min(18,q.h*.65):Math.min(34,q.h*.55),cy=q.y+q.h*.42;
+ g.fillStyle=small?'#91613e':'#815438';g.strokeStyle='#523825';g.lineWidth=4;
+ g.beginPath();g.moveTo(q.x-r,cy);g.bezierCurveTo(q.x+q.w*.25,q.y-8,q.x+q.w*.72,q.y+8,q.x+q.w+r,cy+3);g.bezierCurveTo(q.x+q.w*.72,q.y+q.h+8,q.x+q.w*.25,q.y+q.h-2,q.x-r,cy);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#a9794d';g.lineWidth=3;g.beginPath();g.moveTo(q.x+12,q.y+8);g.bezierCurveTo(q.x+q.w*.35,q.y+2,q.x+q.w*.62,q.y+14,q.x+q.w-12,q.y+7);g.stroke();
+ // moss edge
+ g.strokeStyle='#6fa84f';g.lineWidth=5;g.beginPath();g.moveTo(q.x+5,q.y+2);g.bezierCurveTo(q.x+q.w*.3,q.y-4,q.x+q.w*.7,q.y+4,q.x+q.w-5,q.y+1);g.stroke();
+}
+function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#5fa95b';g.strokeStyle='#376f43';g.lineWidth=4;g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.fill();g.stroke();g.strokeStyle='#d0d86c';g.lineWidth=3;g.beginPath();g.moveTo(-rx*.85,0);g.lineTo(rx*.85,0);g.stroke();for(let k=-2;k<=2;k++){let xx=k*rx*.25;g.beginPath();g.moveTo(xx,0);g.lineTo(xx+rx*.16,(k%2?-.62:.62)*ry);g.stroke()}g.restore()}
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
- g.fillStyle='#76d2ef';g.fillRect(0,0,W,H);
- for(let i=0;i<12;i++)cloud(i*570-cam*.18,80+(i%3)*45-camY*.18);
- g.fillStyle='#a9e37d';for(let i=0;i<14;i++){let x=i*470-cam*.45;g.beginPath();g.arc(x,478,100,Math.PI,0);g.fill()}
+ drawForestBackdrop();
  g.save();g.translate(-cam,-camY);
-
- for(let q of grounds){g.fillStyle='#79b84c';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#5c913d';g.fillRect(q.x,q.y,q.w,9)}
- for(let l of ledges)if(!l.broken){g.fillStyle='#e8b66b';g.fillRect(l.x,l.y,l.w,l.h);g.fillStyle='#5c913d';g.fillRect(l.x,l.y,l.w,8)}
-
- for(let b of blocks)if(!b.broken){g.fillStyle=b.hit?'#b99973':b.type==='bluehorn'?'#b9f6ff':b.type==='glove'?'#ffd0b0':'#ffd65a';g.fillRect(b.x,b.y,48,48);g.strokeStyle='#7e613e';g.lineWidth=3;g.strokeRect(b.x+2,b.y+2,44,44);if(!b.hit){if(b.type==='leaf')drawBlueLeaf(b.x+24,b.y+23,.72);else if(b.type==='sap')drawSapBottle(b.x+24,b.y+24,.62);else{g.fillStyle='#fff';g.font='26px sans-serif';g.fillText(b.type==='bluehorn'?'✦':'🥊',b.x+8,b.y+34)}}}
+ // enormous foreground trunks establish the tiny-person scale
+ for(const t of [{x:760,w:170},{x:1760,w:220},{x:3650,w:190},{x:4930,w:230}]){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
+ for(let q of grounds)drawBranch(q,false);
+ for(let l of ledges)if(!l.broken)drawBranch(l,true);
+ // giant leaves around the route; decorative, not invisible blocks
+ for(const L of [[520,365,72,34,-.25],[930,245,82,38,.18],[1510,75,90,42,-.12],[2220,155,76,35,.28],[3170,205,88,40,-.2],[3890,150,82,38,.2],[4700,250,95,44,-.18],[5350,390,100,46,.12]])giantLeaf(...L);
  for(let u of pickups){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
- // wooden tubes
+ // hollow branch stumps: stag-beetle folk emerge from natural tree hollows
  for(let q of pipes)if(q.alive){
-   g.fillStyle='#a66d3d';g.strokeStyle='#5c3824';g.lineWidth=4;g.fillRect(q.x+8,q.y,q.w-16,q.h);g.strokeRect(q.x+8,q.y,q.w-16,q.h);
+   g.fillStyle='#70472f';g.strokeStyle='#493022';g.lineWidth=4;g.beginPath();g.roundRect(q.x+8,q.y,q.w-16,q.h,18);g.fill();g.stroke();
    for(let yy=q.y+12;yy<q.y+q.h;yy+=22){g.strokeStyle='#7b4d2e';g.beginPath();g.moveTo(q.x+10,yy);g.lineTo(q.x+q.w-10,yy+4);g.stroke()}
-   g.fillStyle='#bd8250';g.fillRect(q.x,q.y,q.w,23);g.strokeStyle='#5c3824';g.strokeRect(q.x,q.y,q.w,23);
+   g.fillStyle='#34261f';g.strokeStyle='#9a6b43';g.lineWidth=6;g.beginPath();g.ellipse(q.x+q.w/2,q.y+12,q.w/2-2,15,0,0,7);g.fill();g.stroke();
    if(q.rise>.02&&!q.bugDead){
      let bx=q.x+41, feet=q.y+18-q.rise*62+48;
      let headY=feet-38, bodyY=feet-19;
@@ -472,8 +491,8 @@ function draw(){
  g.fillStyle='#8a5a32';g.strokeStyle='#5b3b24';g.lineWidth=4;g.fillRect(5570,300,34,180);g.strokeRect(5570,300,34,180);
  g.fillStyle='#70b957';g.strokeStyle='#477d3b';g.lineWidth=4;
  for(const [tx,ty,tr] of [[5587,265,58],[5545,292,45],[5628,292,45],[5587,225,42]]){g.beginPath();g.arc(tx,ty,tr,0,7);g.fill();g.stroke()}
- // exit pipe immediately after the goal; the hero automatically enters it
- g.fillStyle='#a66d3d';g.strokeStyle='#5c3824';g.lineWidth=4;g.fillRect(5728,GROUND-74,70,74);g.strokeRect(5728,GROUND-74,70,74);g.fillStyle='#bd8250';g.fillRect(5718,GROUND-84,90,22);g.strokeRect(5718,GROUND-84,90,22);
+ // exit is a dark hollow in the giant tree, not a pipe
+ g.fillStyle='#68452f';g.strokeStyle='#493022';g.lineWidth=5;g.beginPath();g.roundRect(5708,GROUND-118,110,118,30);g.fill();g.stroke();g.fillStyle='#251d19';g.beginPath();g.ellipse(5763,GROUND-54,34,50,0,0,7);g.fill();
 
  // player: pastel bipedal rhinoceros-beetle hero
  if(!(p.inv&&Math.floor(p.inv/5)%2)){
