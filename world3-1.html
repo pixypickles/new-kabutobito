@@ -215,8 +215,11 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(!p.wallGrab)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch){
-   if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
-   else if((!p.glove||p.blueHorn)&&p.hornCd<=0){let forward=(Rt&&!L)||(L&&!Rt);p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(forward&&!U&&p.hornDashCd<=0){p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2)}if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
+   // Horizontal + B always has priority: Horn Dash works regardless of glove/equipment.
+   let forward=(Rt&&!L)||(L&&!Rt);
+   if(forward&&!U&&p.hornDashCd<=0){p.face=Rt?1:-1;p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2)}
+   else if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
+   else if((!p.glove||p.blueHorn)&&p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
  if(!p.punchT&&!p.hornT)p.attackUp=false;
  let punch=null;if(p.punchT)punch=p.attackUp?{x:p.x-7,y:p.y-58,w:p.w+14,h:66}:{x:p.face>0?p.x+p.w-2:p.x-58,y:p.y+5,w:60,h:Math.max(34,p.h-8)};
