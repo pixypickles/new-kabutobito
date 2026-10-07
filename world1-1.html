@@ -36,8 +36,8 @@ const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnable
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
 const W=960,H=540,GROUND=480,WORLD=6000;
 let keys={},cam=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
-const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
-if(LOOP2){p.blueHorn=true;p.big=true;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
+const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
+if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
 
 
 const grounds=[
@@ -107,7 +107,8 @@ function setH(h){let f=p.y+p.h;p.h=h;p.y=f-h}
 function canStand(){if(!p.big)return true;let q={x:p.x,y:p.y-(62-p.h),w:p.w,h:62};return !solids().some(s=>R(q,s))}
 function hurt(force=false){if(p.hornT>0&&!force)return;
  if(p.inv)return;
-  else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
+ if(p.glove){p.inv=100;p.vy=-5}
+ else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
  else{dead=true;p.vy=-9;localStorage.setItem('maruchibiMisses',String(Number(localStorage.getItem('maruchibiMisses')||0)+1))}
 }
 function breakBlock(b){if(!b||b.broken)return;release(b);b.broken=1;debris(b.x,b.y,9);score+=100}
@@ -143,7 +144,7 @@ function drawSapBottle(cx,cy,scale=1){
 function reset(){location.reload()}
 function nextStage(url){
  localStorage.setItem('maruchibiScore',String(score));localStorage.setItem('maruchibiStars',String(stars));
- localStorage.setItem('maruchibiBig',p.big?'1':'0');localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
+ localStorage.setItem('maruchibiBig',p.big?'1':'0');localStorage.setItem('maruchibiGlove','0');localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
  localStorage.setItem('kabutobitoClearedStage','1-1');localStorage.setItem('kabutobitoNextStage',url);
  location.href='stage-clear.html';
 }
@@ -346,7 +347,7 @@ if(keys.punch&&!hornBHeld){
  for(let t of thrownStags){t.x+=t.vx;t.y+=t.vy;t.vy+=.55;t.rot+=t.vr;t.t--}
  thrownStags=thrownStags.filter(t=>t.t>0&&t.y<650);
 
- for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;if(canStand())setH(62);notice='青角パワー回復！';noticeT=120;score+=800}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
+ for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;if(canStand())setH(62);notice='青角パワー回復！';noticeT=120;score+=800}else if(u.type==='glove'){stars++;score+=300}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
  pickups=pickups.filter(u=>!u.got);
  for(let l of airLeaves)if(!l.got&&R(p,l)){l.got=1;stars++;score+=200;debris(l.x-12,l.y-12,4)}
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
@@ -369,9 +370,9 @@ function draw(){
  for(let q of grounds){g.fillStyle='#79b84c';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#5c913d';g.fillRect(q.x,q.y,q.w,9)}
  for(let l of ledges)if(!l.broken){g.fillStyle='#e8b66b';g.fillRect(l.x,l.y,l.w,l.h);g.fillStyle='#5c913d';g.fillRect(l.x,l.y,l.w,8)}
 
- for(let b of blocks)if(!b.broken){g.fillStyle=b.hit?'#b99973':b.type==='bluehorn'?'#b9f6ff':'#ffd65a';g.fillRect(b.x,b.y,48,48);g.strokeStyle='#7e613e';g.lineWidth=3;g.strokeRect(b.x+2,b.y+2,44,44);if(!b.hit){if(b.type==='leaf')drawBlueLeaf(b.x+24,b.y+23,.72);else if(b.type==='sap')drawSapBottle(b.x+24,b.y+24,.62);else{g.fillStyle='#fff';g.font='26px sans-serif';g.fillText('✦',b.x+8,b.y+34)}}}
+ for(let b of blocks)if(!b.broken){g.fillStyle=b.hit?'#b99973':b.type==='bluehorn'?'#b9f6ff':b.type==='glove'?'#ffd0b0':'#ffd65a';g.fillRect(b.x,b.y,48,48);g.strokeStyle='#7e613e';g.lineWidth=3;g.strokeRect(b.x+2,b.y+2,44,44);if(!b.hit){if(b.type==='leaf')drawBlueLeaf(b.x+24,b.y+23,.72);else if(b.type==='sap')drawSapBottle(b.x+24,b.y+24,.62);else{g.fillStyle='#fff';g.font='26px sans-serif';g.fillText(b.type==='bluehorn'?'✦':'🥊',b.x+8,b.y+34)}}}
  for(let u of pickups){
-   if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
+   if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
  // wooden tubes
@@ -545,6 +546,8 @@ function draw(){
    g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();
    // back arm
    let arm=air?-7:(moving?Math.sin(p.anim+Math.PI)*4:1);g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(-11,bodyY-2);g.lineTo(-17,bodyY+arm);g.stroke();
+   // punch arm/glove
+   if(p.glove){let reach=p.punchT?28:4,fx=20+reach,fy=bodyY-4;g.strokeStyle='#c9f0df';g.lineWidth=7;g.beginPath();g.moveTo(10,bodyY-3);g.lineTo(fx-8,fy);g.stroke();g.fillStyle=(p.blueHorn&&p.glove)?'#27b8ff':'#ef6f78';g.strokeStyle=(p.blueHorn&&p.glove)?'#d9fbff':'#53606d';g.lineWidth=3;g.beginPath();g.arc(fx,fy,9,0,7);g.fill();g.stroke()}
    else{g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(11,bodyY-2);g.lineTo(17,bodyY-arm);g.stroke()}
    // head
    g.fillStyle='#d8f3df';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(p.crouch?6:0,headY,headR,headR*.9,0,0,7);g.fill();g.stroke();

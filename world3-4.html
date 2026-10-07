@@ -33,11 +33,11 @@ canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-renderin
 <div class="touch right actions"><button id="B">B</button><button id="J">A</button></div>
 <script>
 const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
-const carriedScore=Number(localStorage.getItem('maruchibiScore')||0),carriedStars=Number(localStorage.getItem('maruchibiStars')||0),carriedBig=localStorage.getItem('maruchibiBig')==='1',carriedMisses=Number(localStorage.getItem('maruchibiMisses')||0);localStorage.removeItem('maruchibiScore');localStorage.removeItem('maruchibiStars');localStorage.removeItem('maruchibiBig');
+const carriedScore=Number(localStorage.getItem('maruchibiScore')||0),carriedStars=Number(localStorage.getItem('maruchibiStars')||0),carriedBig=localStorage.getItem('maruchibiBig')==='1',carriedGlove=false,carriedMisses=Number(localStorage.getItem('maruchibiMisses')||0);localStorage.removeItem('maruchibiScore');localStorage.removeItem('maruchibiStars');localStorage.removeItem('maruchibiBig');localStorage.removeItem('maruchibiGlove');
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
 const W=960,H=540,GROUND=480,WORLD=7200;
 let keys={},cam=0,score=carriedScore,stars=carriedStars,misses=carriedMisses,dead=false,deathCounted=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,endingT=0;
-const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:carriedBig,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
+const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:carriedBig,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
 if(LOOP2){p.blueHorn=true;}
 
 
@@ -54,7 +54,7 @@ const ledges=[
  {x:3050,y:355,w:140,h:30},{x:3460,y:325,w:100,h:30},
  {x:3940,y:345,w:140,h:30},{x:4350,y:315,w:100,h:30},
  {x:4840,y:350,w:135,h:30},
- // three-tier guard section in this section; clear this before the quiet blue-horn room
+ // three-tier guard section after the glove; clear this before the quiet blue-horn room
  {x:4520,y:390,w:125,h:22,oneway:1},{x:4520,y:300,w:125,h:22,oneway:1},{x:4520,y:210,w:125,h:22,oneway:1},
 ];
 // Hanging castle walls force the route back down; the stage cannot be bypassed by staying near the ceiling.
@@ -91,7 +91,7 @@ let throwers=[
  {x:610,y:GROUND-50,w:38,h:50,cd:45,alive:1,face:-1},{x:1250,y:GROUND-50,w:38,h:50,cd:75,alive:1,face:-1},
  {x:2190,y:GROUND-50,w:38,h:50,cd:55,alive:1,face:-1},{x:3100,y:GROUND-50,w:38,h:50,cd:80,alive:1,face:-1},
  {x:3970,y:GROUND-50,w:38,h:50,cd:50,alive:1,face:-1},
- // vertical three-level enemy challenge in this section
+ // vertical three-level enemy challenge after the glove
  {x:4562,y:340,w:38,h:50,cd:58,alive:1,face:-1},
  {x:4562,y:250,w:38,h:50,cd:82,alive:1,face:-1},
  {x:4562,y:160,w:38,h:50,cd:106,alive:1,face:-1}
@@ -140,7 +140,8 @@ function setH(h){let f=p.y+p.h;p.h=h;p.y=f-h}
 function canStand(){if(!p.big)return true;let q={x:p.x,y:p.y-(62-p.h),w:p.w,h:62};return !solids().some(s=>R(q,s))}
 function hurt(force=false){if(p.hornT>0&&!force)return;
  if(p.inv)return;
-  else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
+ if(p.glove){p.inv=100;p.vy=-5}
+ else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
  else{dead=true;if(!deathCounted){misses++;deathCounted=true;localStorage.setItem('maruchibiMisses',misses)}p.vy=-9}
 }
 function breakBlock(b){if(!b||b.broken)return;release(b);b.broken=1;debris(b.x,b.y,9);score+=100}
@@ -445,7 +446,7 @@ if(keys.punch&&!hornBHeld){
  }
  bossShots=bossShots.filter(sh=>sh.t>0);
 
- for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;if(canStand())setH(62);notice='青角パワー！';noticeT=120;score+=1000}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
+ for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;if(canStand())setH(62);notice=p.glove?'青角＋青グローブ！':'青角パワー！';noticeT=120;score+=1000}else if(u.type==='glove'){stars++;score+=300}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
  pickups=pickups.filter(u=>!u.got);
  for(let l of airLeaves)if(!l.got&&R(p,l)){l.got=1;stars++;score+=200;debris(l.x-12,l.y-12,4)}
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
@@ -516,12 +517,12 @@ function draw(){
      }else{
        if(b.type==='sap'){
          g.save();let sx=b.x+24,sy=b.y+25;g.fillStyle='#e5a238';g.strokeStyle='#fff3c8';g.lineWidth=2;g.beginPath();g.roundRect(sx-8,sy-7,16,19,4);g.fill();g.stroke();g.fillStyle='#8a6235';g.fillRect(sx-5,sy-13,10,6);g.fillStyle='#fff3c8';g.font='bold 7px sans-serif';g.textAlign='center';g.fillText('樹液',sx,sy+4);g.restore();
-       }else{g.fillStyle='#fff';g.font='24px sans-serif';g.fillText(b.type==='bluehorn'?'♢':'✦',b.x+9,b.y+34);}
+       }else{g.fillStyle='#fff';g.font='24px sans-serif';g.fillText(b.type==='glove'?'🥊':b.type==='bluehorn'?'♢':'✦',b.x+9,b.y+34);}
      }
    }
 }
  for(let u of pickups){
-   if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='bluehorn'){g.save();g.translate(u.x+15,u.y+17);g.shadowColor='#bff8ff';g.shadowBlur=16;g.fillStyle='#9eeeff';g.strokeStyle='#eaffff';g.lineWidth=3;g.beginPath();g.moveTo(-8,10);g.quadraticCurveTo(5,-3,10,-17);g.quadraticCurveTo(14,-5,5,13);g.closePath();g.fill();g.stroke();g.restore()}else{
+   if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='bluehorn'){g.save();g.translate(u.x+15,u.y+17);g.shadowColor='#bff8ff';g.shadowBlur=16;g.fillStyle='#9eeeff';g.strokeStyle='#eaffff';g.lineWidth=3;g.beginPath();g.moveTo(-8,10);g.quadraticCurveTo(5,-3,10,-17);g.quadraticCurveTo(14,-5,5,13);g.closePath();g.fill();g.stroke();g.restore()}else{
      let lx=u.x+15,ly=u.y+15;g.save();g.translate(lx,ly);g.rotate(-.48);
      g.fillStyle='#4d9fd8';g.strokeStyle='#285f88';g.lineWidth=2.4;
      g.beginPath();g.moveTo(-13,0);g.quadraticCurveTo(-5,-11,8,-9);g.quadraticCurveTo(15,-5,14,0);
@@ -795,6 +796,8 @@ function draw(){
    g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();
    // back arm
    let arm=air?-7:(moving?Math.sin(p.anim+Math.PI)*4:1);g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(-11,bodyY-2);g.lineTo(-17,bodyY+arm);g.stroke();
+   // punch arm/glove
+   if(p.glove){let reach=(!p.blueHorn&&p.punchT)?28:4,fx=20+reach,fy=bodyY-4;g.strokeStyle='#c9f0df';g.lineWidth=7;g.beginPath();g.moveTo(10,bodyY-3);g.lineTo(fx-8,fy);g.stroke();g.fillStyle=(p.blueHorn&&p.glove)?'#27b8ff':'#ef6f78';g.strokeStyle=(p.blueHorn&&p.glove)?'#d9fbff':'#53606d';g.lineWidth=3;g.beginPath();g.arc(fx,fy,9,0,7);g.fill();g.stroke()}
    else{g.strokeStyle='#53606d';g.lineWidth=4;g.beginPath();g.moveTo(11,bodyY-2);g.lineTo(17,bodyY-arm);g.stroke()}
    // head
    g.fillStyle='#d8f3df';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(p.crouch?6:0,headY,headR,headR*.9,0,0,7);g.fill();g.stroke();

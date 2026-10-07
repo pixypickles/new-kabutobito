@@ -1,3 +1,8 @@
+## v38
+- v36ベースでグローブを安全に無効化（描画・ゲーム進行コードは極力維持）
+- グローブ配置は青い葉へ置換
+- B攻撃は角攻撃に統一
+
 # カブトビト大冒険
 
 カブトムシ系の亜人「カブトビト」を操作する、ブラウザ向け横スクロールアクションゲームです。
@@ -10,7 +15,7 @@ GitHub Pages を有効にすると `index.html` からそのまま遊べます�
 - ↓ : しゃがむ
 - ↑ : 上を見る
 - A / Z / Space : ジャンプ（空中長押しで滑空）
-- B : 角攻撃
+- B : 角攻撃 / グローブ時はパンチ
 - ↑ + B : 上方向へ攻撃
 
 青い葉っぱは30枚につき、クリア時の最終ミス数を1回減らします。
@@ -51,9 +56,3 @@ v35: ホーンダッシュ時も通常時の丸い頭・丸い胴体の比率を
 
 ## v35 horn-dash pose
 Horn Dash now uses a horizontal airborne pose while preserving the hero’s compact round head and torso. The curved beetle horn grows naturally from the forehead and points forward; limbs trail in the air.
-
-
-## v37
-- グローブを廃止しました。
-- 旧グローブ配置は青い葉アイテムに置き換えています。
-- B攻撃は常にカブトビトの角攻撃です。
