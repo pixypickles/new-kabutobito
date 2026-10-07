@@ -186,7 +186,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(hornEdgeDir){if(hornTapDir===hornEdgeDir&&frame-hornTapFrame<=20){hornReadyDir=hornEdgeDir;hornReadyT=30;hornTapDir=0;hornTapFrame=-999}else{hornTapDir=hornEdgeDir;hornTapFrame=frame}}
  prevHornL=!!L;prevHornR=!!Rt;if(hornReadyT>0)hornReadyT--;
  if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
- let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*10.8}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
+ let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*11.6}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
  // Beetle wall-cling: hold toward a wall; A/Z jumps away from it.
  if(p.wallGrab){let holding=(p.wallDir<0&&L)||(p.wallDir>0&&Rt);if(!holding){p.wallGrab=false}else{p.vx=0;p.vy=0;p.glide=false;if(J&&!jumpHeld){p.wallGrab=false;p.wallLock=10;p.vx=-p.wallDir*8.8;p.vy=-16.2;p.face=-p.wallDir}}}
  if(J&&p.on&&!jumpHeld){if(p.crouch&&canStand()){setH(62);p.crouch=false}p.vy=-17.6;p.on=false}
@@ -197,7 +197,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch&&!hornBHeld){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
-   if(hornReadyT>0&&!U&&p.hornDashCd<=0){p.face=hornReadyDir||p.face;p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=10;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*10.8;p.vy=Math.min(p.vy,1.2);hornReadyT=0;hornReadyDir=0}
+   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=14;p.hornDashCd=34;p.wallGrab=false;p.vx=p.face*11.6;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.glove&&!p.blueHorn&&p.punchCd<=0){p.attackUp=!!U;p.punchT=10;p.punchCd=17}
    else if((!p.glove||p.blueHorn)&&p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
