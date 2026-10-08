@@ -454,11 +454,11 @@ function drawSpringBlossoms(){
 
 function drawForestBackdrop(){
  // Deep forest rather than open sky.
- let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#5b9f91');grad.addColorStop(.55,'#93c795');grad.addColorStop(1,'#d5e9a8');g.fillStyle=grad;g.fillRect(0,0,W,H);
+ let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#a5d5a0');grad.addColorStop(.55,'#c4e8a0');grad.addColorStop(1,'#e8f4bc');g.fillStyle=grad;g.fillRect(0,0,W,H);
  // distant trunks with parallax
- for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#315d43':'#294f3c';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
+ for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#537e42':'#456c36';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
  // huge soft leaf masses overhead
- for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#8cc37e':'#a3d18b';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
+ for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#b5df73':'#c7e98b';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
  // shafts of light
  g.save();g.globalAlpha=.10;g.fillStyle='#fff7bd';for(let i=0;i<5;i++){let x=80+i*230-(cam*.04%230);g.beginPath();g.moveTo(x,-20);g.lineTo(x+95,-20);g.lineTo(x+210,H);g.lineTo(x+120,H);g.closePath();g.fill()}g.restore();
 }
@@ -468,9 +468,9 @@ function drawBranch(q,small=false){
  g.beginPath();g.moveTo(q.x-r,cy);g.bezierCurveTo(q.x+q.w*.25,q.y-8,q.x+q.w*.72,q.y+8,q.x+q.w+r,cy+3);g.bezierCurveTo(q.x+q.w*.72,q.y+q.h+8,q.x+q.w*.25,q.y+q.h-2,q.x-r,cy);g.closePath();g.fill();g.stroke();
  g.strokeStyle='#a9794d';g.lineWidth=3;g.beginPath();g.moveTo(q.x+12,q.y+8);g.bezierCurveTo(q.x+q.w*.35,q.y+2,q.x+q.w*.62,q.y+14,q.x+q.w-12,q.y+7);g.stroke();
  // moss edge
- g.strokeStyle='#6fa84f';g.lineWidth=5;g.beginPath();g.moveTo(q.x+5,q.y+2);g.bezierCurveTo(q.x+q.w*.3,q.y-4,q.x+q.w*.7,q.y+4,q.x+q.w-5,q.y+1);g.stroke();
+ g.strokeStyle='#9dce54';g.lineWidth=5;g.beginPath();g.moveTo(q.x+5,q.y+2);g.bezierCurveTo(q.x+q.w*.3,q.y-4,q.x+q.w*.7,q.y+4,q.x+q.w-5,q.y+1);g.stroke();
 }
-function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#5fa95b';g.strokeStyle='#376f43';g.lineWidth=4;g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.fill();g.stroke();g.strokeStyle='#d0d86c';g.lineWidth=3;g.beginPath();g.moveTo(-rx*.85,0);g.lineTo(rx*.85,0);g.stroke();for(let k=-2;k<=2;k++){let xx=k*rx*.25;g.beginPath();g.moveTo(xx,0);g.lineTo(xx+rx*.16,(k%2?-.62:.62)*ry);g.stroke()}g.restore()}
+function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#a4d85f';g.strokeStyle='#62933c';g.lineWidth=4;g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.fill();g.stroke();g.strokeStyle='#d0d86c';g.lineWidth=3;g.beginPath();g.moveTo(-rx*.85,0);g.lineTo(rx*.85,0);g.stroke();for(let k=-2;k<=2;k++){let xx=k*rx*.25;g.beginPath();g.moveTo(xx,0);g.lineTo(xx+rx*.16,(k%2?-.62:.62)*ry);g.stroke()}g.restore()}
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
@@ -485,7 +485,7 @@ function draw(){
    g.beginPath();g.moveTo(trunkX,-260);g.lineTo(trunkX,v.top-28);g.quadraticCurveTo(v.x-48,v.top-43,v.x+38,v.top-36);g.stroke();
    g.strokeStyle='#94643d';g.lineWidth=9;
    g.beginPath();g.moveTo(trunkX,v.top-43);g.quadraticCurveTo(v.x-45,v.top-57,v.x+38,v.top-46);g.stroke();
-   g.fillStyle='#6d9e49';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
+   g.fillStyle='#add56b';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
  }
  // Vines hang directly from the underside of their supporting branches.
  for(const v of hangingVines){
@@ -518,43 +518,28 @@ function draw(){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
- // Walking stag folk, with rounded heads and oversized mandibles.
- for(let f of walkingStags)if(f.alive){
-   g.save();g.translate(f.x+19,f.y+22);if(f.v<0)g.scale(-1,1);
-   g.strokeStyle='#443c50';g.lineWidth=3;g.lineCap='round';g.fillStyle='#8c75a7';
-   g.beginPath();g.ellipse(-5,8,12,16,0,0,7);g.fill();g.stroke();
-   g.beginPath();g.moveTo(-10,16);g.lineTo(-15,23);g.moveTo(3,17);g.lineTo(8,23);g.moveTo(-11,1);g.lineTo(-18,8);g.stroke();
-   g.fillStyle='#aa91bf';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
-   g.strokeStyle='#8c75a7';g.lineWidth=6;g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();g.strokeStyle='#443c50';g.lineWidth=1.5;
-   g.fillStyle='#333';g.beginPath();g.arc(10,-12,2,0,7);g.fill();g.restore();
+ // Spring enemies: butterfly folk, with petal wings and antennae.
+ function springButterfly(cx,cy,face=1,flap=0,scale=1){
+  g.save();g.translate(cx,cy);g.scale(face*scale,scale);
+  let wing=.82+Math.sin(frame*.24+flap)*.17;
+  g.fillStyle='#f9c6de';g.strokeStyle='#b965a3';g.lineWidth=2.8;
+  for(const side of [-1,1]){
+   g.save();g.scale(side*wing,1);
+   g.beginPath();g.ellipse(18,-11,22,17,-.3,0,7);g.fill();g.stroke();
+   g.fillStyle='#f6e3a1';g.beginPath();g.ellipse(16,12,16,14,.4,0,7);g.fill();g.stroke();
+   g.fillStyle='#fff4f8';g.beginPath();g.arc(23,-12,5,0,7);g.fill();g.restore();
+  }
+  g.fillStyle='#a776bb';g.strokeStyle='#68446e';g.lineWidth=2.5;
+  g.beginPath();g.ellipse(0,7,10,18,0,0,7);g.fill();g.stroke();
+  g.beginPath();g.moveTo(-5,19);g.lineTo(-9,28);g.moveTo(5,19);g.lineTo(9,28);g.moveTo(-8,4);g.lineTo(-17,13);g.moveTo(8,4);g.lineTo(17,13);g.stroke();
+  g.fillStyle='#c995ce';g.beginPath();g.arc(0,-15,12,0,7);g.fill();g.stroke();
+  g.strokeStyle='#68446e';g.lineWidth=2;g.beginPath();g.moveTo(-5,-24);g.quadraticCurveTo(-13,-40,-19,-33);g.moveTo(5,-24);g.quadraticCurveTo(13,-40,19,-33);g.stroke();
+  g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
+  g.restore();
  }
- // Flying rhinoceros-beetle folk: small, horizontal, single forward-pointing horn.
- for(let f of flyingStags)if(f.alive){
-   let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.7)*4;
-   g.save();g.translate(cx,cy);g.scale(.66,.66);if(f.vx<0)g.scale(-1,1);
-   g.strokeStyle='#4a4650';g.lineWidth=3;g.lineCap='round';
-   g.fillStyle='#c2e9f1aa';g.beginPath();g.ellipse(-15,-12,19,6,-.35+flap*.018,0,7);g.fill();g.stroke();
-   g.fillStyle='#a86b3a';g.beginPath();g.ellipse(-15,4,17,14,0,0,7);g.fill();g.stroke();
-   g.beginPath();g.moveTo(-23,10);g.lineTo(-36,19);g.moveTo(-10,13);g.lineTo(-23,24);g.moveTo(-20,-2);g.lineTo(-33,-11);g.stroke();
-   g.fillStyle='#dfb477';g.beginPath();g.ellipse(10,-2,16,15,0,0,7);g.fill();g.stroke();
-   g.fillStyle='#3e4b4b';g.beginPath();g.arc(16,-5,2.5,0,7);g.fill();
-   // The horn projects horizontally from the forehead, with a small upward curl at its tip.
-   g.fillStyle='#9a6034';g.strokeStyle='#4a352a';g.lineWidth=2.5;g.beginPath();
-   g.moveTo(20,-12);g.bezierCurveTo(32,-12,45,-12,57,-21);
-   g.bezierCurveTo(49,-10,37,-5,22,-7);g.closePath();g.fill();g.stroke();
-   g.restore();
- }
-
- // thrown stag beetles (large-horn throw result)
- for(let t of thrownStags){
-   g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);
-   g.fillStyle='#8b79a8';g.strokeStyle='#53606d';g.lineWidth=3;
-   g.beginPath();g.ellipse(0,8,14,18,0,0,7);g.fill();g.stroke();
-   g.fillStyle='#eadfcf';g.beginPath();g.ellipse(0,-11,13,12,0,0,7);g.fill();g.stroke();
-   g.strokeStyle='#403744';g.lineWidth=7;g.lineCap='round';
-   g.beginPath();g.moveTo(-7,-16);g.quadraticCurveTo(-18,-27,-25,-31);g.moveTo(7,-16);g.quadraticCurveTo(18,-27,25,-31);g.stroke();
-   g.restore();
- }
+ for(let f of walkingStags)if(f.alive)springButterfly(f.x+19,f.y+22,f.v<0?-1:1,f.x*.01,.9);
+ for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72);
+ for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // ladybugs
  for(let a of ants)if(a.alive){
@@ -605,7 +590,7 @@ function draw(){
  g.beginPath();g.moveTo(5580,GROUND+250);g.lineTo(5580,-750);g.bezierCurveTo(5640,-880,5850,-860,5910,-740);g.lineTo(5910,GROUND+250);g.closePath();g.fill();g.stroke();
  g.strokeStyle='#9b7046';g.lineWidth=13;g.lineCap='round';
  for(const bx of [5615,5680,5750,5835]){g.beginPath();g.moveTo(bx,GROUND+110);g.bezierCurveTo(bx-28,GROUND-90,bx+28,-140,bx-8,-560);g.stroke()}
- g.fillStyle='#487b38';g.strokeStyle='#315a2b';g.lineWidth=8;
+ g.fillStyle='#8fc451';g.strokeStyle='#5b8b37';g.lineWidth=8;
  for(const [lx,ly,rx,ry] of [[5620,-600,145,90],[5780,-670,180,115],[5920,-590,145,85]]){g.beginPath();g.ellipse(lx,ly,rx,ry,0,0,Math.PI*2);g.fill();g.stroke()}
  g.fillStyle='#261e19';g.strokeStyle='#ad8557';g.lineWidth=9;g.beginPath();g.ellipse(5763,GROUND-65,49,66,0,0,Math.PI*2);g.fill();g.stroke();
  g.restore();
