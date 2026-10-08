@@ -652,7 +652,7 @@ function draw(){
      // Beetle horn: rooted on the upper/front forehead, gently curves upward then sweeps forward.
      let hrLen=p.blueHorn?(p.big?48:41):(p.big?37:31);
      let baseX=headX+headR*.68,baseY=headY-headR*.40,tipX=baseX+hrLen,tipY=headY-5;
-     g.fillStyle=p.blueHorn?'#a8f4ff':({red:'#ec5656',blue:'#418fea',yellow:'#f7d63d'}[p.element]||'#86c8d8');g.strokeStyle=p.blueHorn?'#eaffff':'#53606d';g.lineWidth=3;
+     g.fillStyle=({red:'#ec5656',blue:'#418fea',yellow:'#f7d63d'}[p.element]||(p.blueHorn?'#a8f4ff':'#86c8d8'));g.strokeStyle=p.blueHorn?'#eaffff':'#53606d';g.lineWidth=3;
      if(p.blueHorn){g.shadowColor='#8fefff';g.shadowBlur=14}
      // Slim sickle-shaped horn: nearly even thickness, with only the tip curling upward.
      let hornBaseTopY=baseY-2,hornBaseBotY=baseY+4;
@@ -715,7 +715,7 @@ function draw(){
    if(p.hornT&&!p.attackUp){let e=18-p.hornT;if(e<5)hornAngle=-38;else if(e<12){let t=(e-5)/7;hornAngle=-38-45*t}else{let t=Math.min(1,(e-12)/6);hornAngle=-83+35*t}}
    let hrLen=p.big?30:19,baseX=(p.crouch?12:7),baseY=headY-headR*.78,ang=hornAngle*Math.PI/180;
    let tipX=baseX+Math.cos(ang)*hrLen,tipY=baseY+Math.sin(ang)*hrLen;
-   g.fillStyle=p.blueHorn?'#d9fbff':'#86c8d8';g.strokeStyle=p.blueHorn?'#62eaff':'#53606d';g.lineWidth=p.blueHorn?4:3;if(p.blueHorn){g.shadowColor='#6eeeff';g.shadowBlur=14}g.beginPath();
+   g.fillStyle=({red:'#ec5656',blue:'#418fea',yellow:'#f7d63d'}[p.element]||(p.blueHorn?'#d9fbff':'#86c8d8'));g.strokeStyle=(p.element? '#53606d':(p.blueHorn?'#62eaff':'#53606d'));g.lineWidth=p.blueHorn?4:3;if(p.blueHorn){g.shadowColor='#6eeeff';g.shadowBlur=14}g.beginPath();
    g.moveTo(baseX,baseY+5);g.quadraticCurveTo((baseX+tipX)/2+5,(baseY+tipY)/2+4,tipX,tipY);
    g.quadraticCurveTo(tipX+5,tipY+5,baseX+8,baseY+10);g.closePath();g.fill();g.stroke();
    if(p.hornT<=12&&p.hornT>=6){g.strokeStyle='#ffffffaa';g.lineWidth=3;g.beginPath();g.arc(7,headY-3,p.big?40:29,-.55,-1.42,true);g.stroke()}

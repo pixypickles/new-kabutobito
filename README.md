@@ -106,3 +106,6 @@ v59: 大角の体色を濃く。1-2の蝶を上空で高さ違いに配置、足
 
 
 v60: Spring stages 1-1..1-3: mint-green old berry; large green horn-hit selector fruit cycles red/blue/yellow, touch to equip. Only one elemental horn at a time, persistent across stages until death. Red strengthens normal horn to dash level and dash one further level; blue speeds walking; yellow increases jumps.
+
+
+v61: Attribute horn colors now remain visible during normal movement as well as horn dash (World 1-1 to 1-3). World 1-2 falling platforms redrawn as single notched cherry-blossom petals.
