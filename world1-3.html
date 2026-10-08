@@ -42,7 +42,9 @@ if(localStorage.getItem('maruchibiBig')==='1'){p.big=true;setTimeout(()=>{if(p.h
 if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 
-const grounds=[{x:0,y:480,w:1200,h:80}];
+const grounds=[{x:0,y:480,w:1200,h:80},
+ // The solid outer trunks have actual collision and can be wall-grabbed.
+ {x:0,y:-2600,w:68,h:3080},{x:1132,y:-2600,w:68,h:3080}];
 const ledges=[
 {x:165,y:375,w:225,h:28},
 {x:360,y:270,w:225,h:28},
@@ -67,7 +69,8 @@ const ledges=[
 {x:565,y:-1725,w:225,h:28},
 {x:735,y:-1830,w:225,h:28},
 {x:550,y:-1935,w:225,h:28},
-{x:350,y:-2040,w:225,h:28}
+{x:350,y:-2040,w:225,h:28},
+{x:575,y:-2040,w:250,h:28},{x:825,y:-2040,w:270,h:28}
 ];
 let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
@@ -391,7 +394,7 @@ if(keys.punch&&!hornBHeld){
  for(let f of flyingStags){
    if(!f.alive)continue;
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
-   f.x+=f.vx;f.y=f.baseY;
+   f.phase=(f.phase||0)+.105;f.x+=f.vx*(.65+.35*Math.sin(f.phase*1.7));f.y=f.baseY+Math.sin(f.phase)*21+Math.sin(f.phase*.43)*11;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
@@ -415,7 +418,7 @@ if(keys.punch&&!hornBHeld){
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
 
  if(p.y>650)hurt();
- if(!stageExit&&p.y<-1990&&p.x>470){stageExit=1;score+=1000;nextStage('world1-4.html');}
+ if(!stageExit&&p.y<-1990&&p.x>950){stageExit=1;score+=1000;nextStage('world1-4.html');}
  cam=Math.max(0,Math.min(WORLD-W,p.x-480));
  // v39: vertical camera only moves when the player climbs above the normal play band.
  // Negative camY means the view has climbed upward; easing keeps it gentle.
@@ -496,10 +499,21 @@ function draw(){
  for(let q of grounds)drawBranch(q,false);
  for(let l of ledges)if(!l.broken)drawBranch(l,true);
  drawSpringBlossoms();
- // A glowing canopy gate marks the end of this vertical ascent.
- g.save();g.translate(650,-2070);g.fillStyle='#ffeeb0';g.shadowColor='#ffec87';g.shadowBlur=25;
- g.beginPath();g.ellipse(0,0,25,48,0,0,Math.PI*2);g.fill();g.shadowBlur=0;
- g.fillStyle='#315a3d';g.font='bold 18px sans-serif';g.fillText('GOAL',-28,-60);g.restore();
+ // The climb ends in a horizontal path to a hollow inside a huge tree.
+ g.save();
+ g.fillStyle='#6b452d';g.strokeStyle='#49301f';g.lineWidth=6;
+ g.beginPath();g.moveTo(940,-2380);g.lineTo(1120,-2380);g.lineTo(1120,-2010);g.lineTo(940,-2010);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#a27748';g.lineWidth=9;
+ for(const x of [972,1014,1075]){g.beginPath();g.moveTo(x,-2360);g.quadraticCurveTo(x+22,-2200,x,-2030);g.stroke()}
+ g.fillStyle='#241c18';g.strokeStyle='#b28a5e';g.lineWidth=7;
+ g.beginPath();g.ellipse(1010,-2094,45,61,0,0,7);g.fill();g.stroke();
+ g.fillStyle='#e9f3af';g.font='bold 18px sans-serif';g.fillText('GOAL →',930,-2180);
+ g.restore();
+ // Tall visible trunks frame the entire vertical route.
+ for(const [x,w] of [[0,68],[1132,68]]){
+   g.fillStyle='#66452d';g.fillRect(x,-2600,w,3080);
+   g.strokeStyle='#a17649';g.lineWidth=6;g.beginPath();g.moveTo(x+w*.45,-2600);g.lineTo(x+w*.55,480);g.stroke();
+ }
 
  // giant leaves around the route; decorative, not invisible blocks
  for(const L of [[520,365,72,34,-.25],[930,245,82,38,.18],[1510,75,90,42,-.12],[2220,155,76,35,.28],[3170,205,88,40,-.2],[3890,150,82,38,.2],[4700,250,95,44,-.18],[5350,390,100,46,.12]])giantLeaf(...L);
@@ -521,7 +535,7 @@ function draw(){
  // Spring enemies: butterfly folk, with petal wings and antennae.
  function springButterfly(cx,cy,face=1,flap=0,scale=1){
   g.save();g.translate(cx,cy);g.scale(face*scale,scale);
-  let wing=.82+Math.sin(frame*.24+flap)*.17;
+  let wing=.66+Math.sin(frame*.37+flap)*.31;
   g.fillStyle='#f9c6de';g.strokeStyle='#b965a3';g.lineWidth=2.8;
   for(const side of [-1,1]){
    g.save();g.scale(side*wing,1);
@@ -537,7 +551,14 @@ function draw(){
   g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
   g.restore();
  }
- for(let f of walkingStags)if(f.alive)springButterfly(f.x+19,f.y+22,f.v<0?-1:1,f.x*.01,.9);
+ function springCaterpillar(cx,cy,face=1){
+  g.save();g.translate(cx,cy);g.scale(face,1);
+  for(let i=0;i<4;i++){g.fillStyle=i%2?'#9ecb56':'#b9de71';g.strokeStyle='#5f893f';g.lineWidth=2;g.beginPath();g.ellipse(-13+i*9,9-Math.sin(frame*.13+i)*2,9,12,0,0,7);g.fill();g.stroke()}
+  g.fillStyle='#d5ec91';g.strokeStyle='#608941';g.beginPath();g.arc(14,-4,12,0,7);g.fill();g.stroke();
+  g.fillStyle='#3d5d3b';g.beginPath();g.arc(19,-6,2.5,0,7);g.fill();
+  g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
+ }
+ for(let f of walkingStags)if(f.alive)springCaterpillar(f.x+19,f.y+22,f.v<0?-1:1);
  for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 

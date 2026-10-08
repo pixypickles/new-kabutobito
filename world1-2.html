@@ -375,7 +375,7 @@ if(keys.punch&&!hornBHeld){
  for(let f of flyingStags){
    if(!f.alive)continue;
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
-   f.x+=f.vx;f.y=f.baseY;
+   f.phase=(f.phase||0)+.105;f.x+=f.vx*(.65+.35*Math.sin(f.phase*1.7));f.y=f.baseY+Math.sin(f.phase)*21+Math.sin(f.phase*.43)*11;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
@@ -500,7 +500,7 @@ function draw(){
  // Spring enemies: butterfly folk, with petal wings and antennae.
  function springButterfly(cx,cy,face=1,flap=0,scale=1){
   g.save();g.translate(cx,cy);g.scale(face*scale,scale);
-  let wing=.82+Math.sin(frame*.24+flap)*.17;
+  let wing=.66+Math.sin(frame*.37+flap)*.31;
   g.fillStyle='#f9c6de';g.strokeStyle='#b965a3';g.lineWidth=2.8;
   for(const side of [-1,1]){
    g.save();g.scale(side*wing,1);
@@ -516,7 +516,14 @@ function draw(){
   g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
   g.restore();
  }
- for(let f of walkingStags)if(f.alive)springButterfly(f.x+19,f.y+22,f.v<0?-1:1,f.x*.01,.9);
+ function springCaterpillar(cx,cy,face=1){
+  g.save();g.translate(cx,cy);g.scale(face,1);
+  for(let i=0;i<4;i++){g.fillStyle=i%2?'#9ecb56':'#b9de71';g.strokeStyle='#5f893f';g.lineWidth=2;g.beginPath();g.ellipse(-13+i*9,9-Math.sin(frame*.13+i)*2,9,12,0,0,7);g.fill();g.stroke()}
+  g.fillStyle='#d5ec91';g.strokeStyle='#608941';g.beginPath();g.arc(14,-4,12,0,7);g.fill();g.stroke();
+  g.fillStyle='#3d5d3b';g.beginPath();g.arc(19,-6,2.5,0,7);g.fill();
+  g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
+ }
+ for(let f of walkingStags)if(f.alive)springCaterpillar(f.x+19,f.y+22,f.v<0?-1:1);
  for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
