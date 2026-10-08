@@ -625,7 +625,7 @@ function draw(){
      g.strokeStyle='#ffffff99';g.lineWidth=3;g.lineCap='round';
      for(const yy of [-13,0,13]){g.beginPath();g.moveTo(-49,yy);g.lineTo(-27,yy);g.stroke()}
      // rear body stays compact and round -- never stretched into a long torso
-     g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
      g.beginPath();g.ellipse(-9,3,bodyRX,bodyRY,0,0,7);g.fill();g.stroke();
      g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(-9,3-bodyRY*.65);g.lineTo(-9,3+bodyRY*.65);g.stroke();
      // arms and legs trail freely in the air
@@ -686,7 +686,7 @@ function draw(){
      g.restore();
    }
    // body, soft mint/sky palette
-   g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+   g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
    g.beginPath();g.ellipse(0,bodyY,14,bodyH/2,0,0,7);g.fill();g.stroke();
    // pale wing-case seam
    g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();

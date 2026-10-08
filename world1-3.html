@@ -72,6 +72,15 @@ const ledges=[
 {x:350,y:-2040,w:225,h:28},
 {x:575,y:-2040,w:250,h:28},{x:825,y:-2040,w:270,h:28}
 ];
+
+// Solid outward-reaching branches interrupt the two wall-climb shortcuts.
+// The center divider creates a genuine left/right choice at mid-height.
+const trunkObstacles=[
+ {x:68,y:-260,w:260,h:48},{x:880,y:-580,w:252,h:48},
+ {x:68,y:-920,w:290,h:48},{x:858,y:-1320,w:274,h:48},
+ {x:68,y:-1740,w:275,h:48},{x:870,y:-1980,w:262,h:48},
+ {x:560,y:-1415,w:60,h:510}
+];
 let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
 let pipes=[];
@@ -79,7 +88,7 @@ let flyingStags=[
 {x:480,y:-480,baseY:-480,vx:2.5,minX:370,maxX:730,phase:0,alive:1,w:48,h:34},
 {x:450,y:-1260,baseY:-1260,vx:-2.7,minX:300,maxX:720,phase:0,alive:1,w:48,h:34},
 {x:500,y:-1850,baseY:-1850,vx:2.9,minX:360,maxX:780,phase:0,alive:1,w:48,h:34}
-];
+,{x:755,y:-1040,baseY:-1040,vx:1.25,minX:700,maxX:835,phase:0,alive:1,w:48,h:34,kind:1},{x:830,y:-1190,baseY:-1190,vx:-1.1,minX:740,maxX:910,phase:2,alive:1,w:48,h:34,kind:3},{x:755,y:-1340,baseY:-1340,vx:1.3,minX:690,maxX:870,phase:4,alive:1,w:48,h:34,kind:4}];
 // A separate walking stag-beetle type patrols the upper branches.
 let walkingStags=[];
 // Forest insect folk: ladybug walkers and snail folk.
@@ -95,7 +104,7 @@ const hangingVines=[{x:355,top:-470,bottom:-140},{x:770,top:-1080,bottom:-750},{
 let grabbedVine=null, vineJumpLock=0;
 
 // Discolored bark can be opened with the horn. Sap stays on the tree instead of appearing in a bottle.
-let sapSpots=[];
+let sapSpots=[{x:405,y:-1190,w:40,h:50,hit:0,sap:0}];
 // Small blue berries grow directly from branches. One berry is worth five blue leaves.
 let blueBerries=[{x:420,y:-520},{x:610,y:-1150},{x:400,y:-1780}].map(q=>({...q,w:24,h:24,got:0}));
 let airLeaves=ledges.filter((q,i)=>i%2===0).map(q=>({x:q.x+q.w/2,y:q.y-42,w:24,h:24,got:0}));
@@ -117,7 +126,7 @@ function groundAt(x,y){
  return grounds.some(q=>x>=q.x&&x<=q.x+q.w&&y>=q.y-3&&y<=q.y+q.h);
 }
 function solids(){
- return grounds.concat(ledges).concat(pipes.filter(q=>q.alive)).concat(blocks.filter(b=>!b.broken).map(b=>({x:b.x,y:b.y,w:48,h:48,block:b})));
+ return grounds.concat(ledges).concat(trunkObstacles).concat(pipes.filter(q=>q.alive)).concat(blocks.filter(b=>!b.broken).map(b=>({x:b.x,y:b.y,w:48,h:48,block:b})));
 }
 function debris(x,y,n=7){
  for(let i=0;i<n;i++)particles.push({x:x+24,y:y+20,vx:(Math.random()*6-3),vy:-3-Math.random()*5,t:55,r:3+Math.random()*5});
@@ -514,6 +523,11 @@ function draw(){
    for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
  for(let q of grounds)drawBranch(q,false);
+ for(const o of trunkObstacles){
+ g.fillStyle='#725038';g.strokeStyle='#a77a4c';g.lineWidth=5;
+ g.fillRect(o.x,o.y,o.w,o.h);g.strokeRect(o.x+2,o.y+2,o.w-4,o.h-4);
+ g.strokeStyle='#4b3427';g.lineWidth=2;g.beginPath();g.moveTo(o.x+12,o.y+o.h*.6);g.lineTo(o.x+o.w-12,o.y+o.h*.6);g.stroke();
+ }
  for(let l of ledges)if(!l.broken)drawBranch(l,true);
  drawSpringBlossoms();
  // The climb ends in a horizontal path to a hollow inside a huge tree.
@@ -654,7 +668,7 @@ function draw(){
      g.strokeStyle='#ffffff99';g.lineWidth=3;g.lineCap='round';
      for(const yy of [-13,0,13]){g.beginPath();g.moveTo(-49,yy);g.lineTo(-27,yy);g.stroke()}
      // rear body stays compact and round -- never stretched into a long torso
-     g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
      g.beginPath();g.ellipse(-9,3,bodyRX,bodyRY,0,0,7);g.fill();g.stroke();
      g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(-9,3-bodyRY*.65);g.lineTo(-9,3+bodyRY*.65);g.stroke();
      // arms and legs trail freely in the air
@@ -715,7 +729,7 @@ function draw(){
      g.restore();
    }
    // body, soft mint/sky palette
-   g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+   g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
    g.beginPath();g.ellipse(0,bodyY,14,bodyH/2,0,0,7);g.fill();g.stroke();
    // pale wing-case seam
    g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();

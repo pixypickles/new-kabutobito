@@ -57,7 +57,7 @@ ledges.push(...driftingLeaves);
 let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
 let pipes=[];
-let flyingStags=[{x:720,y:300,baseY:300,vx:-2.4,minX:585,maxX:855,phase:0,alive:1,w:48,h:34,kind:0},{x:1030,y:230,baseY:230,vx:2.2,minX:895,maxX:1165,phase:1,alive:1,w:48,h:34,kind:1},{x:1310,y:290,baseY:290,vx:-2.4,minX:1175,maxX:1445,phase:2,alive:1,w:48,h:34,kind:2},{x:1860,y:220,baseY:220,vx:2.2,minX:1725,maxX:1995,phase:3,alive:1,w:48,h:34,kind:3},{x:2150,y:280,baseY:280,vx:-2.4,minX:2015,maxX:2285,phase:4,alive:1,w:48,h:34,kind:4},{x:2450,y:200,baseY:200,vx:2.2,minX:2315,maxX:2585,phase:5,alive:1,w:48,h:34,kind:0},{x:2720,y:270,baseY:270,vx:-2.4,minX:2585,maxX:2855,phase:6,alive:1,w:48,h:34,kind:1},{x:3300,y:200,baseY:200,vx:2.2,minX:3165,maxX:3435,phase:7,alive:1,w:48,h:34,kind:2},{x:3620,y:270,baseY:270,vx:-2.4,minX:3485,maxX:3755,phase:8,alive:1,w:48,h:34,kind:3},{x:3930,y:210,baseY:210,vx:2.2,minX:3795,maxX:4065,phase:9,alive:1,w:48,h:34,kind:4},{x:4600,y:280,baseY:280,vx:-2.4,minX:4465,maxX:4735,phase:10,alive:1,w:48,h:34,kind:0},{x:4910,y:200,baseY:200,vx:2.2,minX:4775,maxX:5045,phase:11,alive:1,w:48,h:34,kind:1},{x:5240,y:290,baseY:290,vx:-2.4,minX:5105,maxX:5375,phase:12,alive:1,w:48,h:34,kind:2}];
+let flyingStags=[{x:710,y:105,baseY:105,vx:-1.35,minX:590,maxX:830,phase:0.0,alive:1,w:48,h:34,kind:0},{x:1030,y:180,baseY:180,vx:1.35,minX:910,maxX:1150,phase:1.1,alive:1,w:48,h:34,kind:1},{x:1330,y:80,baseY:80,vx:-1.35,minX:1210,maxX:1450,phase:2.2,alive:1,w:48,h:34,kind:2},{x:1810,y:145,baseY:145,vx:1.35,minX:1690,maxX:1930,phase:3.3,alive:1,w:48,h:34,kind:3},{x:2160,y:50,baseY:50,vx:-1.35,minX:2040,maxX:2280,phase:4.4,alive:1,w:48,h:34,kind:4},{x:2490,y:195,baseY:195,vx:1.35,minX:2370,maxX:2610,phase:5.5,alive:1,w:48,h:34,kind:0},{x:2790,y:115,baseY:115,vx:-1.35,minX:2670,maxX:2910,phase:6.6,alive:1,w:48,h:34,kind:1},{x:3280,y:65,baseY:65,vx:1.35,minX:3160,maxX:3400,phase:7.7,alive:1,w:48,h:34,kind:2},{x:3610,y:165,baseY:165,vx:-1.35,minX:3490,maxX:3730,phase:8.8,alive:1,w:48,h:34,kind:3},{x:3950,y:90,baseY:90,vx:1.35,minX:3830,maxX:4070,phase:9.9,alive:1,w:48,h:34,kind:4},{x:4580,y:185,baseY:185,vx:-1.35,minX:4460,maxX:4700,phase:11.0,alive:1,w:48,h:34,kind:0},{x:4920,y:45,baseY:45,vx:1.35,minX:4800,maxX:5040,phase:12.1,alive:1,w:48,h:34,kind:1},{x:5260,y:135,baseY:135,vx:-1.35,minX:5140,maxX:5380,phase:13.2,alive:1,w:48,h:34,kind:2}];
 // A separate walking stag-beetle type patrols the upper branches.
 let walkingStags=[];
 // Forest insect folk: ladybug walkers and snail folk.
@@ -509,7 +509,14 @@ function draw(){
    for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
  for(let q of grounds)drawBranch(q,false);
- for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);giantLeaf(0,0,l.w/2,13,0);g.restore()}else drawBranch(l,true);}
+ for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#ff9bc5';g.strokeStyle='#b94380';g.lineWidth=3;
+ g.beginPath();g.moveTo(-l.w*.48,0);
+ g.bezierCurveTo(-l.w*.40,-21,-l.w*.12,-22,0,-12);
+ g.bezierCurveTo(l.w*.12,-22,l.w*.40,-21,l.w*.48,0);
+ g.bezierCurveTo(l.w*.28,18,l.w*.08,18,0,11);
+ g.bezierCurveTo(-l.w*.08,18,-l.w*.28,18,-l.w*.48,0);
+ g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#ffe0ef';g.lineWidth=2;g.beginPath();g.moveTo(-l.w*.36,0);g.lineTo(l.w*.36,0);g.stroke();g.restore()}else drawBranch(l,true);}
  drawSpringBlossoms();
  // giant leaves around the route; decorative, not invisible blocks
  
@@ -633,7 +640,7 @@ function draw(){
      g.strokeStyle='#ffffff99';g.lineWidth=3;g.lineCap='round';
      for(const yy of [-13,0,13]){g.beginPath();g.moveTo(-49,yy);g.lineTo(-27,yy);g.stroke()}
      // rear body stays compact and round -- never stretched into a long torso
-     g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+     g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
      g.beginPath();g.ellipse(-9,3,bodyRX,bodyRY,0,0,7);g.fill();g.stroke();
      g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(-9,3-bodyRY*.65);g.lineTo(-9,3+bodyRY*.65);g.stroke();
      // arms and legs trail freely in the air
@@ -694,7 +701,7 @@ function draw(){
      g.restore();
    }
    // body, soft mint/sky palette
-   g.fillStyle=p.big?'#9fe3cf':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
+   g.fillStyle=p.big?'#53b69d':'#a9dcf2';g.strokeStyle='#53606d';g.lineWidth=3;
    g.beginPath();g.ellipse(0,bodyY,14,bodyH/2,0,0,7);g.fill();g.stroke();
    // pale wing-case seam
    g.strokeStyle='#72aeb8';g.lineWidth=2;g.beginPath();g.moveTo(0,bodyY-bodyH*.35);g.lineTo(0,bodyY+bodyH*.35);g.stroke();
