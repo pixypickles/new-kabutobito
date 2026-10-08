@@ -48,10 +48,10 @@ const grounds=[
 const ledges=[
  // Branches climb diagonally around a huge trunk, then descend into the upper canopy route.
  {x:650,y:390,w:190,h:28},{x:820,y:335,w:210,h:28},{x:1010,y:280,w:220,h:28},
- {x:1200,y:225,w:230,h:28},{x:1400,y:170,w:230,h:28},{x:1600,y:120,w:260,h:28},
+ {x:1200,y:225,w:170,h:28},{x:1430,y:170,w:200,h:28},{x:1600,y:120,w:260,h:28},
  {x:1900,y:175,w:250,h:28},{x:2150,y:235,w:230,h:28},{x:2380,y:300,w:250,h:28},
  {x:2760,y:360,w:220,h:28},{x:3020,y:305,w:230,h:28},{x:3260,y:245,w:250,h:28},
- {x:3520,y:190,w:260,h:28},{x:3800,y:245,w:230,h:28},{x:4050,y:310,w:250,h:28},
+ {x:3520,y:190,w:195,h:28},{x:3810,y:245,w:220,h:28},{x:4050,y:310,w:250,h:28},
  {x:4480,y:350,w:230,h:28},{x:4760,y:300,w:220,h:28}
 ];
 // No floating blocks in the forest stage. Power-ups/collectibles live in the scenery instead.
@@ -59,20 +59,18 @@ let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
 let pipes=[];
 let flyingStags=[
- {x:1180,y:245,baseY:245,vx:1.35,phase:0,alive:1,w:52,h:48},
- {x:2860,y:250,baseY:250,vx:-1.45,phase:70,alive:1,w:52,h:48},
- {x:4410,y:235,baseY:235,vx:1.55,phase:145,alive:1,w:52,h:48}
+ {x:1130,y:235,baseY:235,vx:3.6,minX:1050,maxX:1670,phase:0,alive:1,w:66,h:42},
+ {x:2950,y:235,baseY:235,vx:-3.9,minX:2730,maxX:3470,phase:0,alive:1,w:66,h:42},
+ {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:66,h:42}
+];
+// A separate walking stag-beetle type patrols the upper branches.
+let walkingStags=[
+ {x:1500,y:126,v:-.7,minX:1450,maxX:1590,alive:1,w:38,h:44},
+ {x:3580,y:146,v:.7,minX:3540,maxX:3680,alive:1,w:38,h:44}
 ];
 // Forest insect folk: ladybug walkers and snail folk.
-let ants=[
- {x:520,y:450,v:-1.15,alive:1,flat:0},{x:1030,y:440,v:-1.05,alive:1,flat:0},
- {x:2050,y:425,v:-1.2,alive:1,flat:0},{x:3460,y:425,v:-1.1,alive:1,flat:0},
- {x:4560,y:440,v:-1.15,alive:1,flat:0},{x:5350,y:450,v:-1.1,alive:1,flat:0}
-];
-let snails=[
- {x:1380,y:432,v:-.8,alive:1,shell:0,shellV:0},{x:2660,y:432,v:-.75,alive:1,shell:0,shellV:0},
- {x:3950,y:417,v:-.8,alive:1,shell:0,shellV:0},{x:5200,y:442,v:-.75,alive:1,shell:0,shellV:0}
-];
+let ants=[{x:520,y:450,v:-1.15,alive:1,flat:0},{x:3460,y:425,v:-1.1,alive:1,flat:0}];
+let snails=[{x:2660,y:432,v:-.75,alive:1,shell:0,shellV:0}];
 let pickups=[],particles=[],thrownStags=[];
 // Discolored bark can be opened with the horn. Sap stays on the tree instead of appearing in a bottle.
 let sapSpots=[
@@ -354,8 +352,12 @@ if(keys.punch&&!hornBHeld){
 
  // Flying stag-beetle folk patrol the open air instead of hiding in tubes.
  for(let f of flyingStags){
-   if(!f.alive)continue;f.phase+=.055;f.x+=f.vx;f.y=f.baseY+Math.sin(f.phase)*34;
-   if(f.x<900||f.x>5350)f.vx*=-1;
+   if(!f.alive)continue;f.x+=f.vx;f.y=f.baseY;
+   if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
+   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
+ }
+ for(let f of walkingStags){
+   if(!f.alive)continue;f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
    if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
  // Fresh sap can be touched directly on the bark for a small recovery/power-up.
@@ -427,16 +429,31 @@ function draw(){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
+ // Walking stag folk, with rounded heads and oversized mandibles.
+ for(let f of walkingStags)if(f.alive){
+   g.save();g.translate(f.x+19,f.y+22);if(f.v<0)g.scale(-1,1);
+   g.strokeStyle='#443c50';g.lineWidth=3;g.lineCap='round';g.fillStyle='#8c75a7';
+   g.beginPath();g.ellipse(-5,8,12,16,0,0,7);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-10,16);g.lineTo(-15,23);g.moveTo(3,17);g.lineTo(8,23);g.moveTo(-11,1);g.lineTo(-18,8);g.stroke();
+   g.fillStyle='#efe1d6';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
+   g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();
+   g.fillStyle='#333';g.beginPath();g.arc(10,-12,2,0,7);g.fill();g.restore();
+ }
  // Flying stag-beetle folk: humanoid bodies, beetle wings, and large mandibles.
  for(let f of flyingStags)if(f.alive){
-   let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.55+f.phase)*9;
+   let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.65)*5;
    g.save();g.translate(cx,cy);if(f.vx<0)g.scale(-1,1);
-   g.fillStyle='#d9f0e7aa';g.strokeStyle='#617a74';g.lineWidth=2;
-   g.beginPath();g.ellipse(-13,-2,15,8,-.45,0,7);g.fill();g.stroke();g.beginPath();g.ellipse(-12,5,15,8,.45,0,7);g.fill();g.stroke();
-   g.strokeStyle='#53606d';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(-7,10);g.lineTo(-13,20+flap*.12);g.moveTo(5,10);g.lineTo(1,20-flap*.12);g.stroke();
-   g.fillStyle='#806b9b';g.strokeStyle='#53606d';g.lineWidth=3;g.beginPath();g.ellipse(0,5,12,16,0,0,7);g.fill();g.stroke();
-   g.fillStyle='#eadfcf';g.beginPath();g.arc(7,-14,11,0,7);g.fill();g.stroke();g.fillStyle='#53606d';g.beginPath();g.arc(11,-16,1.8,0,7);g.fill();
-   g.strokeStyle='#403744';g.lineWidth=6;g.beginPath();g.moveTo(12,-20);g.quadraticCurveTo(24,-29,30,-24);g.moveTo(12,-12);g.quadraticCurveTo(25,-8,31,-14);g.stroke();
+   // Rounded body trails behind the head, with legs stretched backward.
+   g.strokeStyle='#4b4354';g.lineWidth=3;g.lineCap='round';
+   g.fillStyle='#d7eee6b8';g.beginPath();g.ellipse(-18,-10,17,7,-.3+flap*.015,0,7);g.fill();g.stroke();
+   g.beginPath();g.ellipse(-19,7,17,7,.3-flap*.015,0,7);g.fill();g.stroke();
+   g.fillStyle='#927eae';g.beginPath();g.ellipse(-14,4,17,14,0,0,7);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-24,8);g.lineTo(-37,16);g.moveTo(-18,14);g.lineTo(-29,24);g.moveTo(-10,-3);g.lineTo(-24,-13);g.stroke();
+   g.fillStyle='#f0e2d6';g.beginPath();g.ellipse(12,-2,17,16,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#343039';g.beginPath();g.arc(17,-6,2.3,0,7);g.fill();
+   // Long pincer jaws face into the direction of flight.
+   g.lineWidth=5;g.beginPath();g.moveTo(23,-12);g.quadraticCurveTo(39,-26,44,-15);g.quadraticCurveTo(43,-9,36,-8);
+   g.moveTo(24,5);g.quadraticCurveTo(42,17,45,4);g.quadraticCurveTo(43,-1,37,-1);g.stroke();
    g.restore();
  }
 
