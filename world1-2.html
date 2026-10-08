@@ -44,12 +44,13 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 const grounds=[{x:0,y:480,w:470,h:70},{x:5520,y:480,w:480,h:70}];
 const ledges=[{x:1480,y:350,w:170,h:25},{x:2900,y:300,w:170,h:25},{x:4230,y:365,w:180,h:25}];
-// Slanted leaves float diagonally; they act as one-way landing platforms.
-// Leaves enter from above, drift diagonally down-left, and reappear above after falling.
-const driftingLeaves=Array.from({length:30},(_,i)=>({
- x:510+i*165,y:345+Math.sin(i*1.7)*115,w:115,h:17,
- startX:510+i*165,startY:345+Math.sin(i*1.7)*115,
- vx:-0.62-(i%3)*.11,vy:.43+(i%4)*.07
+// Oversized cherry petals: level landing surfaces, drifting diagonally down.
+// Independently staggered positions and speeds avoid synchronized rows or empty waves.
+const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
+const driftingLeaves=Array.from({length:52},(_,i)=>({
+ x:480+petalRand(i,1)*5060,y:-260+petalRand(i,2)*810,
+ w:118,h:17,vx:-.55-petalRand(i,3)*.38,vy:.48+petalRand(i,4)*.32,
+ drift:true,seed:i
 }));
 ledges.push(...driftingLeaves);
 
@@ -181,7 +182,13 @@ function update(){
  for(let i=0;i<driftingLeaves.length;i++){
  const l=driftingLeaves[i];l.x+=l.vx;l.y+=l.vy;
  // Recycle only after the leaf has dropped well below the playable view.
- if(l.y>650){l.y=-115-(i%5)*75;l.x=l.startX+180;}
+ if(l.y>650){
+   // Restart each petal independently above the visible region, near the player's route.
+   l.y=-90-petalRand(frame+i*37,2)*440;
+   l.x=Math.max(480,Math.min(5480,cam-140+petalRand(frame+i*53,1)*1380));
+   l.vx=-.55-petalRand(frame+i*29,3)*.38;
+   l.vy=.48+petalRand(frame+i*31,4)*.32;
+  }
 }
 /*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
@@ -377,7 +384,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
      if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
-     else hurt();
+     else { /* Butterfly body contact is harmless. */ }
    }
  }
  for(let f of walkingStags){
@@ -468,7 +475,17 @@ function drawBranch(q,small=false){
  // moss edge
  g.strokeStyle='#9dce54';g.lineWidth=5;g.beginPath();g.moveTo(q.x+5,q.y+2);g.bezierCurveTo(q.x+q.w*.3,q.y-4,q.x+q.w*.7,q.y+4,q.x+q.w-5,q.y+1);g.stroke();
 }
-function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#ff8fbd';g.strokeStyle='#b94b85';g.lineWidth=4;g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.fill();g.stroke();g.strokeStyle='#fff3c5';g.lineWidth=3;g.beginPath();g.moveTo(-rx*.85,0);g.lineTo(rx*.85,0);g.stroke();for(let k=-2;k<=2;k++){let xx=k*rx*.25;g.beginPath();g.moveTo(xx,0);g.lineTo(xx+rx*.16,(k%2?-.62:.62)*ry);g.stroke()}g.restore()}
+function giantLeaf(x,y,rx,ry,rot){
+ g.save();g.translate(x,y);g.rotate(rot);
+ g.fillStyle='#f58dbb';g.strokeStyle='#b94b85';g.lineWidth=3;
+ g.beginPath();g.moveTo(-rx,0);
+ g.bezierCurveTo(-rx*.87,-ry*1.45,-rx*.27,-ry*1.7,0,-ry*.85);
+ g.bezierCurveTo(rx*.3,-ry*1.7,rx*.88,-ry*1.45,rx,0);
+ g.bezierCurveTo(rx*.67,ry*.95,rx*.25,ry*1.05,0,ry*.62);
+ g.bezierCurveTo(-rx*.25,ry*1.05,-rx*.7,ry*.95,-rx,0);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#ffe8f1';g.lineWidth=2;g.beginPath();g.moveTo(-rx*.8,0);g.quadraticCurveTo(0,ry*.15,rx*.8,0);g.stroke();
+ g.restore();
+}
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
