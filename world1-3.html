@@ -81,7 +81,7 @@ let flyingStags=[
 {x:500,y:-1850,baseY:-1850,vx:2.9,minX:360,maxX:780,phase:0,alive:1,w:48,h:34}
 ];
 // A separate walking stag-beetle type patrols the upper branches.
-let walkingStags=[{x:255,y:-299,v:.7,minX:180,maxX:345,alive:1,w:38,h:44},{x:655,y:-1139,v:.7,minX:580,maxX:745,alive:1,w:38,h:44},{x:825,y:-1874,v:.7,minX:750,maxX:915,alive:1,w:38,h:44}];
+let walkingStags=[];
 // Forest insect folk: ladybug walkers and snail folk.
 let ants=[
 {x:430,y:-128,v:-.6,alive:1,flat:0},
@@ -89,7 +89,7 @@ let ants=[
 {x:390,y:-1283,v:-.7,alive:1,flat:0}
 ];
 let snails=[];
-let pickups=[],particles=[],thrownStags=[];
+let pickups=[],particles=[],thrownStags=[];let springPollen=[];let pollenStun=0;
 // Hanging vines: hold UP near a vine to grab, UP/DOWN to climb, jump to release.
 const hangingVines=[{x:355,top:-470,bottom:-140},{x:770,top:-1080,bottom:-750},{x:355,top:-1710,bottom:-1380},{x:775,top:-2340,bottom:-2010}];
 let grabbedVine=null, vineJumpLock=0;
@@ -210,6 +210,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
 
  let L=keys.arrowleft||keys.a,Rt=keys.arrowright||keys.d,D=keys.arrowdown||keys.s,U=keys.arrowup,J=keys.z||keys[' '];
+ if(pollenStun>0){pollenStun--;L=false;Rt=false;D=false;U=false;J=false;p.vx=0;p.wallGrab=false;grabbedVine=null;}
  // Horn Dash command: tap the same direction twice, then press B while the short command window is active.
  let hornEdgeDir=(Rt&&!prevHornR)?1:((L&&!prevHornL)?-1:0);
  if(hornEdgeDir){if(hornTapDir===hornEdgeDir&&frame-hornTapFrame<=20){hornReadyDir=hornEdgeDir;hornReadyT=30;hornTapDir=0;hornTapFrame=-999}else{hornTapDir=hornEdgeDir;hornTapFrame=frame}}
@@ -235,7 +236,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  jumpHeld=!!J;
  if(!p.wallGrab&&!grabbedVine)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
-if(keys.punch&&!hornBHeld){
+if(keys.punch&&!hornBHeld&&pollenStun===0){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
    if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.dashStrikeT=22;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
@@ -394,7 +395,7 @@ if(keys.punch&&!hornBHeld){
  for(let f of flyingStags){
    if(!f.alive)continue;
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
-   f.phase=(f.phase||0)+.17;f.x+=f.vx*(.52+.45*Math.sin(f.phase*.75));f.y=f.baseY+Math.sin(f.phase)*32+Math.sin(f.phase*.39)*18;
+   f.phase=(f.phase||0)+.17;f.x+=f.vx*(.22+.19*Math.sin(f.phase*.75));f.y=f.baseY+Math.sin(f.phase)*32+Math.sin(f.phase*.39)*18;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
      if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-20.5;p.on=false;score+=300;debris(f.x,f.y,9)}
@@ -410,6 +411,16 @@ if(keys.punch&&!hornBHeld){
      else hurt();
    }
  }
+ // Butterfly scale powder drifts downward. Only powder, not body contact, stuns.
+ for(const f of flyingStags)if(f.alive&&!f.thrown&&frame%112===Math.floor((f.kind||0)*13)%112){
+   springPollen.push({x:f.x+f.w/2,y:f.y+f.h-1,vx:(Math.sin(frame*.15+f.x)*.6),vy:1.35,t:145});
+ }
+ for(const q of springPollen){q.x+=q.vx+Math.sin(frame*.08+q.y*.1)*.35;q.y+=q.vy;q.vy=Math.min(2.7,q.vy+.016);q.t--;
+  if(pollenStun===0&&p.inv===0&&R({x:p.x+9,y:p.y+12,w:p.w-18,h:p.h-18},{x:q.x-7,y:q.y-7,w:14,h:14})){
+   pollenStun=125;q.t=0;notice='りんぷんで しびれた！';noticeT=85;p.vx=0;
+  }
+ }
+ springPollen=springPollen.filter(q=>q.t>0&&q.y<GROUND+130);
  // Fresh sap can be touched directly on the bark for a small recovery/power-up.
  for(let sp of sapSpots)if(sp.sap&&R(p,{x:sp.x-5,y:sp.y+18,w:sp.w+18,h:sp.h})){sp.sap=0;p.big=true;if(canStand())setH(62);score+=500;notice='樹液パワー！';noticeT=80}
  // Blue berries are deliberately chunky rewards: five leaves at once.
@@ -572,10 +583,12 @@ function draw(){
   g.fillStyle='#3d5d3b';g.beginPath();g.arc(19,-6,2.5,0,7);g.fill();
   g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
  }
- for(let f of walkingStags)if(f.alive)springLadybug(f.x+19,f.y+22,f.v<0?-1:1);
+ 
  for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72,f.kind||0);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
+ // Falling scale powder, drawn as visible lavender sparkle clusters.
+ for(const q of springPollen){g.save();g.globalAlpha=Math.min(1,q.t/24);g.fillStyle='#c484db';g.strokeStyle='#fff2d0';g.lineWidth=1.5;g.beginPath();g.arc(q.x,q.y,6,0,Math.PI*2);g.fill();g.stroke();g.fillStyle='#fff4bc';g.beginPath();g.arc(q.x-2,q.y-2,2,0,7);g.fill();g.restore();}
  // ladybugs
  for(let a of ants)if(a.alive){
    let feet=a.y+30, cx=a.x+18;
