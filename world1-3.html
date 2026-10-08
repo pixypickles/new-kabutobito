@@ -425,13 +425,40 @@ if(keys.punch&&!hornBHeld){
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
 
+
+function drawSpringFlowers(){
+ // Pale petals drift across the camera; foreground blossoms stay on the branches.
+ const t=Date.now()*.0003;
+ g.save();
+ for(let i=0;i<42;i++){
+   let x=((i*191.7+t*(13+i%4*8))%(W+70))-35;
+   let y=((i*97.3+t*(19+i%3*5))%(H+60))-30;
+   g.save();g.translate(x,y);g.rotate(t+i);
+   g.fillStyle=i%3===0?'#fff0f3':i%3===1?'#ffc7d7':'#ffe4ec';
+   g.beginPath();g.ellipse(0,0,5+i%3,3,0,0,Math.PI*2);g.fill();g.restore();
+ }
+ g.restore();
+}
+function drawSpringBlossoms(){
+ for(let i=0;i<65;i++){
+   const x=105+i*91+(i%3)*17, y=45+(i%5)*39-((i*71)%120);
+   g.save();g.translate(x,y);g.rotate(i*.72);
+   for(let k=0;k<5;k++){
+     const a=k*Math.PI*2/5;
+     g.fillStyle=k%2?'#ffd7e4':'#ffecf0';
+     g.beginPath();g.ellipse(Math.cos(a)*8,Math.sin(a)*8,8,5,a,0,Math.PI*2);g.fill();
+   }
+   g.fillStyle='#f6cb62';g.beginPath();g.arc(0,0,3.5,0,Math.PI*2);g.fill();g.restore();
+ }
+}
+
 function drawForestBackdrop(){
  // Deep forest rather than open sky.
- let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#183f3a');grad.addColorStop(.55,'#3f7650');grad.addColorStop(1,'#8dbb68');g.fillStyle=grad;g.fillRect(0,0,W,H);
+ let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#5b9f91');grad.addColorStop(.55,'#93c795');grad.addColorStop(1,'#d5e9a8');g.fillStyle=grad;g.fillRect(0,0,W,H);
  // distant trunks with parallax
  for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#315d43':'#294f3c';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
  // huge soft leaf masses overhead
- for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#4f8f55':'#5c9e5d';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
+ for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#8cc37e':'#a3d18b';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
  // shafts of light
  g.save();g.globalAlpha=.10;g.fillStyle='#fff7bd';for(let i=0;i<5;i++){let x=80+i*230-(cam*.04%230);g.beginPath();g.moveTo(x,-20);g.lineTo(x+95,-20);g.lineTo(x+210,H);g.lineTo(x+120,H);g.closePath();g.fill()}g.restore();
 }
@@ -447,7 +474,7 @@ function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fill
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
- drawForestBackdrop();
+ drawForestBackdrop();drawSpringFlowers();
  g.save();g.translate(-cam,-camY);
  // enormous foreground trunks establish the tiny-person scale
  for(const t of [{x:760,w:170},{x:1760,w:220},{x:3650,w:190},{x:4930,w:230}]){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
@@ -468,6 +495,7 @@ function draw(){
  }
  for(let q of grounds)drawBranch(q,false);
  for(let l of ledges)if(!l.broken)drawBranch(l,true);
+ drawSpringBlossoms();
  // A glowing canopy gate marks the end of this vertical ascent.
  g.save();g.translate(650,-2070);g.fillStyle='#ffeeb0';g.shadowColor='#ffec87';g.shadowBlur=25;
  g.beginPath();g.ellipse(0,0,25,48,0,0,Math.PI*2);g.fill();g.shadowBlur=0;

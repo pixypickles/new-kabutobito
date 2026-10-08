@@ -449,22 +449,51 @@ if(keys.punch&&!hornBHeld){
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
 
+
+function drawSpringFlowers(){
+ // Pale petals drift across the camera; foreground blossoms stay on the branches.
+ const t=Date.now()*.0003;
+ g.save();
+ for(let i=0;i<42;i++){
+   let x=((i*191.7+t*(13+i%4*8))%(W+70))-35;
+   let y=((i*97.3+t*(19+i%3*5))%(H+60))-30;
+   g.save();g.translate(x,y);g.rotate(t+i);
+   g.fillStyle=i%3===0?'#fff0f3':i%3===1?'#ffc7d7':'#ffe4ec';
+   g.beginPath();g.ellipse(0,0,5+i%3,3,0,0,Math.PI*2);g.fill();g.restore();
+ }
+ g.restore();
+}
+function drawSpringBlossoms(){
+ for(let i=0;i<65;i++){
+   const x=105+i*91+(i%3)*17, y=45+(i%5)*39-((i*71)%120);
+   g.save();g.translate(x,y);g.rotate(i*.72);
+   for(let k=0;k<5;k++){
+     const a=k*Math.PI*2/5;
+     g.fillStyle=k%2?'#ffd7e4':'#ffecf0';
+     g.beginPath();g.ellipse(Math.cos(a)*8,Math.sin(a)*8,8,5,a,0,Math.PI*2);g.fill();
+   }
+   g.fillStyle='#f6cb62';g.beginPath();g.arc(0,0,3.5,0,Math.PI*2);g.fill();g.restore();
+ }
+}
+
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
  g.fillStyle='#7f929d';g.fillRect(0,0,W,H);
  // cool blue-gray rear wall so the white wooden blocks read clearly in front
- g.fillStyle='#9cabb1';g.fillRect(0,0,W,H);
- g.strokeStyle='#778991';g.lineWidth=2;
+ g.fillStyle='#a8d5ad';g.fillRect(0,0,W,H);
+ g.strokeStyle='#80b18b';g.lineWidth=2;
  for(let y=0;y<H;y+=48){
    let off=((y/48)%2)*32;
    for(let x=-64+off;x<W;x+=64)g.strokeRect(x,y,64,48);
  }
  // beams and narrow castle windows
- g.fillStyle='#697b82';
+ g.fillStyle='#739c69';
  for(let x=190;x<W;x+=310){g.fillRect(x,0,12,H);g.fillRect(x-60,180,132,10)}
- for(let x=120;x<W;x+=290){g.fillStyle='#526d78';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
+ for(let x=120;x<W;x+=290){g.fillStyle='#678c67';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
+ drawSpringFlowers();
  g.save();g.translate(-cam,0);
+ drawSpringBlossoms();
 
  for(let q of grounds){
    g.fillStyle='#e8dfcf';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#bcae96';g.fillRect(q.x,q.y,q.w,8);
