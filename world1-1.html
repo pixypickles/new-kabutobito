@@ -34,7 +34,7 @@ canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-renderin
 <script>
 const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
-const W=960,H=540,GROUND=480,WORLD=6000;
+const W=960,H=540,GROUND=480,WORLD=7200;
 let keys={},cam=0,camY=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
 const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,dashStrikeT:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
 if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
@@ -45,7 +45,7 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 const grounds=[
  // Giant lower branches. Collision stays simple; the drawing below makes them organic.
  {x:0,y:480,w:780,h:70},{x:900,y:470,w:650,h:80},{x:1680,y:455,w:720,h:95},
- {x:2530,y:470,w:650,h:80},{x:3310,y:455,w:760,h:95},{x:4200,y:470,w:760,h:80},{x:5090,y:480,w:910,h:70}
+ {x:2530,y:470,w:650,h:80},{x:3310,y:455,w:760,h:95},{x:4200,y:470,w:760,h:80},{x:5090,y:480,w:910,h:70},{x:6120,y:480,w:1080,h:70}
 ];
 const ledges=[
  // Branches climb diagonally around a huge trunk, then descend into the upper canopy route.
@@ -61,9 +61,10 @@ let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
 let pipes=[];
 let flyingStags=[
+{x:600,y:300,baseY:300,vx:-3.2,minX:530,maxX:900,phase:0,alive:1,w:48,h:34,kind:0},{x:1680,y:180,baseY:180,vx:3,minX:1510,maxX:2050,phase:1,alive:1,w:48,h:34,kind:1},{x:2240,y:220,baseY:220,vx:-3.2,minX:2090,maxX:2460,phase:2,alive:1,w:48,h:34,kind:2},{x:3500,y:200,baseY:200,vx:3,minX:3300,maxX:3870,phase:3,alive:1,w:48,h:34,kind:3},{x:5010,y:280,baseY:280,vx:-3.2,minX:4810,maxX:5370,phase:4,alive:1,w:48,h:34,kind:4},{x:5540,y:220,baseY:220,vx:3,minX:5370,maxX:5870,phase:5,alive:1,w:48,h:34,kind:0},{x:6330,y:250,baseY:250,vx:-3.2,minX:6150,maxX:6680,phase:6,alive:1,w:48,h:34,kind:1},{x:6740,y:260,baseY:260,vx:3,minX:6500,maxX:6930,phase:7,alive:1,w:48,h:34,kind:2},
  {x:1130,y:235,baseY:235,vx:3.6,minX:1050,maxX:1670,phase:0,alive:1,w:48,h:34},
  {x:2950,y:235,baseY:235,vx:-3.9,minX:2730,maxX:3470,phase:0,alive:1,w:48,h:34},
- {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:48,h:34}
+ {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:48,h:34,kind:3}
 ];
 // A separate walking stag-beetle type patrols the upper branches.
 let walkingStags=[
@@ -134,7 +135,7 @@ function breakBlock(b){if(!b||b.broken)return;release(b);b.broken=1;debris(b.x,b
 function breakPipe(q){if(!q.alive)return;q.alive=0;debris(q.x,q.y,15);score+=500}
 function shellHitBox(s){return{x:s.x-3,y:s.y+10,w:42,h:28}}
 function kickShell(s,dir){s.shell=1;s.shellV=dir*11;s.v=0;score+=100}
-function stompableTop(e,h){return p.vy>1 && p.y+p.h<=e.y+h*.72}
+function stompableTop(e,h){return p.vy>1 && p.y+p.h-12<=e.y+h*.8}
 function scoopProtected(r){
  // During the complete horn-scoop animation, normal enemy contact cannot hurt the player.
  // This avoids a second collision pass damaging the player after the scoop has begun.
@@ -338,9 +339,9 @@ if(keys.punch&&!hornBHeld){
    moveActor(a,36,30);if(a.thrown&&a.superThrow&&!a.on)a.v*=.995;if(a.thrown&&a.on){a.thrown=0;a.superThrow=0;a.v=a.v<0?-1.15:1.15}
    if(a.y>600){a.alive=0;continue}
  }
- let antContacts=ants.filter(a=>a.alive&&!a.flat&&!a.thrown&&!a.safeT&&R(p,{x:a.x,y:a.y,w:36,h:30})&&!scoopProtected({x:a.x,y:a.y,w:36,h:30}));
+ let antContacts=ants.filter(a=>a.alive&&!a.flat&&!a.thrown&&!a.safeT&&R({x:p.x+5,y:p.y+7,w:p.w-10,h:p.h-11},{x:a.x+3,y:a.y+7,w:30,h:23})&&!scoopProtected({x:a.x,y:a.y,w:36,h:30}));
  let antStomp=antContacts.filter(a=>stompableTop(a,30));
- if(antStomp.length){for(let a of antStomp){a.flat=28;a.v=0;a.y+=18;score+=200}p.vy=-7.5}
+ if(antStomp.length){for(let a of antStomp){a.flat=28;a.v=0;a.y+=18;score+=200}p.vy=-20.5}
  if(antContacts.some(a=>!antStomp.includes(a)))hurt();
 
  // Snails: gravity + ledges. Stomp -> shell. Shell can be kicked and destroys almost everything.
@@ -372,7 +373,7 @@ if(keys.punch&&!hornBHeld){
  let stomp=sc.filter(s=>stompableTop(s,38));
  if(stomp.length){
    for(let s of stomp){if(!s.shell){s.shell=1;s.shellV=0;s.v=0;score+=200}else if(s.shellV){s.shellV=0;score+=100}}
-   p.vy=-7.5;
+   p.vy=-20.5;
  }
  for(let s of sc)if(!stomp.includes(s)){
    if(s.shell&&!s.shellV){kickShell(s,p.x<s.x?1:-1);p.vx+=(p.x<s.x?-2:2)}
@@ -383,15 +384,21 @@ if(keys.punch&&!hornBHeld){
  for(let f of flyingStags){
    if(!f.alive)continue;
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
-   f.phase=(f.phase||0)+.105;f.x+=f.vx*(.65+.35*Math.sin(f.phase*1.7));f.y=f.baseY+Math.sin(f.phase)*21+Math.sin(f.phase*.43)*11;
+   f.phase=(f.phase||0)+.17;f.x+=f.vx*(.52+.45*Math.sin(f.phase*.75));f.y=f.baseY+Math.sin(f.phase)*32+Math.sin(f.phase*.39)*18;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
-   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
+   if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
+     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-20.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     else hurt();
+   }
  }
  for(let f of walkingStags){
    if(!f.alive)continue;
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
    f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
-   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
+   if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
+     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-20.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     else hurt();
+   }
  }
  // Fresh sap can be touched directly on the bark for a small recovery/power-up.
  for(let sp of sapSpots)if(sp.sap&&R(p,{x:sp.x-5,y:sp.y+18,w:sp.w+18,h:sp.h})){sp.sap=0;p.big=true;if(canStand())setH(62);score+=500;notice='樹液パワー！';noticeT=80}
@@ -407,7 +414,7 @@ if(keys.punch&&!hornBHeld){
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
 
  if(p.y>650)hurt();
- if(!stageExit&&p.x>5660){stageExit=1;score+=1000;nextStage('world1-2.html');}
+ if(!stageExit&&p.x>6860){stageExit=1;score+=1000;nextStage('world1-2.html');}
  cam=Math.max(0,Math.min(WORLD-W,p.x-300));
  // v39: vertical camera only moves when the player climbs above the normal play band.
  // Negative camY means the view has climbed upward; easing keeps it gentle.
@@ -506,14 +513,14 @@ function draw(){
  }
 
  // Spring enemies: butterfly folk, with petal wings and antennae.
- function springButterfly(cx,cy,face=1,flap=0,scale=1){
+ function springButterfly(cx,cy,face=1,flap=0,scale=1,kind=0){
   g.save();g.translate(cx,cy);g.scale(face*scale,scale);
   let wing=.66+Math.sin(frame*.37+flap)*.31;
-  g.fillStyle='#f9c6de';g.strokeStyle='#b965a3';g.lineWidth=2.8;
+  g.fillStyle=['#f9c6de','#ffe274','#a6dafa','#f7a46d','#f4f0d9'][kind%5];g.strokeStyle=['#b965a3','#c7a44a','#6194bc','#c87955','#9f9c93'][kind%5];g.lineWidth=2.8;
   for(const side of [-1,1]){
    g.save();g.scale(side*wing,1);
    g.beginPath();g.ellipse(18,-11,22,17,-.3,0,7);g.fill();g.stroke();
-   g.fillStyle='#f6e3a1';g.beginPath();g.ellipse(16,12,16,14,.4,0,7);g.fill();g.stroke();
+   g.fillStyle=['#f6e3a1','#f9bd53','#e7f4ff','#ffe7b8','#e9f0c8'][kind%5];g.beginPath();g.ellipse(16,12,16,14,.4,0,7);g.fill();g.stroke();
    g.fillStyle='#fff4f8';g.beginPath();g.arc(23,-12,5,0,7);g.fill();g.restore();
   }
   g.fillStyle='#a776bb';g.strokeStyle='#68446e';g.lineWidth=2.5;
@@ -524,6 +531,14 @@ function draw(){
   g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
   g.restore();
  }
+ function springLadybug(cx,cy,face=1){
+  g.save();g.translate(cx,cy);g.scale(face,1);
+  g.fillStyle='#4d3639';g.beginPath();g.ellipse(0,12,19,13,0,0,7);g.fill();
+  g.fillStyle='#ef685b';g.strokeStyle='#7b3842';g.lineWidth=2.5;g.beginPath();g.ellipse(0,1,20,17,0,0,7);g.fill();g.stroke();
+  g.strokeStyle='#7b3842';g.beginPath();g.moveTo(0,-16);g.lineTo(0,16);g.stroke();
+  g.fillStyle='#563b48';for(let x of [-11,11])for(let y of [-6,6]){g.beginPath();g.arc(x,y,3.5,0,7);g.fill()}
+  g.fillStyle='#f7dfbc';g.beginPath();g.arc(18,-10,9,0,7);g.fill();g.fillStyle='#38333b';g.beginPath();g.arc(22,-12,2,0,7);g.fill();g.restore();
+ }
  function springCaterpillar(cx,cy,face=1){
   g.save();g.translate(cx,cy);g.scale(face,1);
   for(let i=0;i<4;i++){g.fillStyle=i%2?'#9ecb56':'#b9de71';g.strokeStyle='#5f893f';g.lineWidth=2;g.beginPath();g.ellipse(-13+i*9,9-Math.sin(frame*.13+i)*2,9,12,0,0,7);g.fill();g.stroke()}
@@ -531,8 +546,8 @@ function draw(){
   g.fillStyle='#3d5d3b';g.beginPath();g.arc(19,-6,2.5,0,7);g.fill();
   g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
  }
- for(let f of walkingStags)if(f.alive)springCaterpillar(f.x+19,f.y+22,f.v<0?-1:1);
- for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72);
+ for(let f of walkingStags)if(f.alive)springLadybug(f.x+19,f.y+22,f.v<0?-1:1);
+ for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72,f.kind||0);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // ladybugs
@@ -581,12 +596,12 @@ function draw(){
  // Giant destination tree: trunk extends beyond the screen; the hollow is part of it.
  g.save();
  g.fillStyle='#65442d';g.strokeStyle='#402c20';g.lineWidth=7;
- g.beginPath();g.moveTo(5580,GROUND+250);g.lineTo(5580,-750);g.bezierCurveTo(5640,-880,5850,-860,5910,-740);g.lineTo(5910,GROUND+250);g.closePath();g.fill();g.stroke();
+ g.beginPath();g.moveTo(6780,GROUND+250);g.lineTo(6780,-750);g.bezierCurveTo(6840,-880,7050,-860,7110,-740);g.lineTo(7110,GROUND+250);g.closePath();g.fill();g.stroke();
  g.strokeStyle='#9b7046';g.lineWidth=13;g.lineCap='round';
- for(const bx of [5615,5680,5750,5835]){g.beginPath();g.moveTo(bx,GROUND+110);g.bezierCurveTo(bx-28,GROUND-90,bx+28,-140,bx-8,-560);g.stroke()}
+ for(const bx of [6815,6880,6950,7035]){g.beginPath();g.moveTo(bx,GROUND+110);g.bezierCurveTo(bx-28,GROUND-90,bx+28,-140,bx-8,-560);g.stroke()}
  g.fillStyle='#8fc451';g.strokeStyle='#5b8b37';g.lineWidth=8;
- for(const [lx,ly,rx,ry] of [[5620,-600,145,90],[5780,-670,180,115],[5920,-590,145,85]]){g.beginPath();g.ellipse(lx,ly,rx,ry,0,0,Math.PI*2);g.fill();g.stroke()}
- g.fillStyle='#261e19';g.strokeStyle='#ad8557';g.lineWidth=9;g.beginPath();g.ellipse(5763,GROUND-65,49,66,0,0,Math.PI*2);g.fill();g.stroke();
+ for(const [lx,ly,rx,ry] of [[6820,-600,145,90],[6980,-670,180,115],[7120,-590,145,85]]){g.beginPath();g.ellipse(lx,ly,rx,ry,0,0,Math.PI*2);g.fill();g.stroke()}
+ g.fillStyle='#261e19';g.strokeStyle='#ad8557';g.lineWidth=9;g.beginPath();g.ellipse(6963,GROUND-65,49,66,0,0,Math.PI*2);g.fill();g.stroke();
  g.restore();
 
  // player: pastel bipedal rhinoceros-beetle hero
