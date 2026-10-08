@@ -73,3 +73,5 @@ v44: 1-1 flying beetles now rhinoceros beetles, forward horn; climbable vines (h
 
 
 v45: 1-1のツルの上端に幹につながる木の枝を描画。飛行カブトムシは茶・琥珀色へ変更。歩行クワガタのアゴを胴体と同じ紫色に変更。
+
+v46: 1-1ゴールを巨大な幹の洞へ変更。歩行クワガタの顔を紫系へ。大角ダッシュの破壊判定を入力直後にも保持。

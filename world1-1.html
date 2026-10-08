@@ -36,7 +36,7 @@ const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnable
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
 const W=960,H=540,GROUND=480,WORLD=6000;
 let keys={},cam=0,camY=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
-const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
+const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,dashStrikeT:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
 if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
 
 
@@ -194,7 +194,7 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
- if(vineJumpLock)vineJumpLock--;if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
+ if(vineJumpLock)vineJumpLock--;if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.dashStrikeT)p.dashStrikeT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
 
  let L=keys.arrowleft||keys.a,Rt=keys.arrowright||keys.d,D=keys.arrowdown||keys.s,U=keys.arrowup,J=keys.z||keys[' '];
@@ -225,7 +225,7 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch&&!hornBHeld){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
-   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
+   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.dashStrikeT=22;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
  hornBHeld=!!keys.punch;
@@ -235,7 +235,7 @@ if(keys.punch&&!hornBHeld){
  let hornActive=p.hornT<=12&&p.hornT>=6;
  if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
- if(p.hornDashT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+ if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
 
  if(grabbedVine){p.vx=0;p.vy=0;}
  p.x+=p.vx;
@@ -276,10 +276,10 @@ if(keys.punch&&!hornBHeld){
    // Horn exploration: crack discolored bark and expose fresh tree sap.
    for(let sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){sp.hit=1;sp.sap=1;score+=150;notice='樹液が出てきた！';noticeT=75;debris(sp.x,sp.y,5)}
    // Both stag types share the four-level horn rules. A dash upgrades one level.
-   const stagPower=(p.big?1:0)+(p.hornDashT>0?1:0);
+   const stagPower=(p.big?1:0)+((p.hornDashT>0||p.dashStrikeT>0)?1:0);
    const stagStrike=(arr,fly)=>{for(const f of arr){if(!f.alive||f.thrown)continue;
      const rr={x:f.x-5,y:f.y-5,w:f.w+10,h:f.h+10};
-     if(!R(hornHit,rr)&&!(p.hornDashT>0&&R({x:Math.min(p.x,p.x-p.vx)-90,y:p.y-15,w:Math.abs(p.vx)+p.w+180,h:p.h+30},rr)))continue;
+     if(!R(hornHit,rr)&&!((p.hornDashT>0||p.dashStrikeT>0)&&R({x:Math.min(p.x,p.x-p.vx)-90,y:p.y-15,w:Math.abs(p.vx)+p.w+180,h:p.h+30},rr)))continue;
      if(stagPower>=2){f.alive=0;debris(f.x,f.y,9);score+=350;}
      else{f.thrown=1;f.throwVx=-p.face*(stagPower?13:7);f.throwVy=stagPower?-12:-7;f.safeT=65;score+=200;}
    }};
@@ -477,7 +477,7 @@ function draw(){
    g.strokeStyle='#443c50';g.lineWidth=3;g.lineCap='round';g.fillStyle='#8c75a7';
    g.beginPath();g.ellipse(-5,8,12,16,0,0,7);g.fill();g.stroke();
    g.beginPath();g.moveTo(-10,16);g.lineTo(-15,23);g.moveTo(3,17);g.lineTo(8,23);g.moveTo(-11,1);g.lineTo(-18,8);g.stroke();
-   g.fillStyle='#efe1d6';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
+   g.fillStyle='#aa91bf';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
    g.strokeStyle='#8c75a7';g.lineWidth=6;g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();g.strokeStyle='#443c50';g.lineWidth=1.5;
    g.fillStyle='#333';g.beginPath();g.arc(10,-12,2,0,7);g.fill();g.restore();
  }
@@ -552,12 +552,16 @@ function draw(){
  // debris
  for(let d of particles){g.fillStyle='#9b6a43';g.fillRect(d.x,d.y,d.r,d.r)}
 
- // goal tree
- g.fillStyle='#8a5a32';g.strokeStyle='#5b3b24';g.lineWidth=4;g.fillRect(5570,300,34,180);g.strokeRect(5570,300,34,180);
- g.fillStyle='#70b957';g.strokeStyle='#477d3b';g.lineWidth=4;
- for(const [tx,ty,tr] of [[5587,265,58],[5545,292,45],[5628,292,45],[5587,225,42]]){g.beginPath();g.arc(tx,ty,tr,0,7);g.fill();g.stroke()}
- // exit is a dark hollow in the giant tree, not a pipe
- g.fillStyle='#68452f';g.strokeStyle='#493022';g.lineWidth=5;g.beginPath();g.roundRect(5708,GROUND-118,110,118,30);g.fill();g.stroke();g.fillStyle='#251d19';g.beginPath();g.ellipse(5763,GROUND-54,34,50,0,0,7);g.fill();
+ // Giant destination tree: trunk extends beyond the screen; the hollow is part of it.
+ g.save();
+ g.fillStyle='#65442d';g.strokeStyle='#402c20';g.lineWidth=7;
+ g.beginPath();g.moveTo(5580,GROUND+250);g.lineTo(5580,-750);g.bezierCurveTo(5640,-880,5850,-860,5910,-740);g.lineTo(5910,GROUND+250);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#9b7046';g.lineWidth=13;g.lineCap='round';
+ for(const bx of [5615,5680,5750,5835]){g.beginPath();g.moveTo(bx,GROUND+110);g.bezierCurveTo(bx-28,GROUND-90,bx+28,-140,bx-8,-560);g.stroke()}
+ g.fillStyle='#487b38';g.strokeStyle='#315a2b';g.lineWidth=8;
+ for(const [lx,ly,rx,ry] of [[5620,-600,145,90],[5780,-670,180,115],[5920,-590,145,85]]){g.beginPath();g.ellipse(lx,ly,rx,ry,0,0,Math.PI*2);g.fill();g.stroke()}
+ g.fillStyle='#261e19';g.strokeStyle='#ad8557';g.lineWidth=9;g.beginPath();g.ellipse(5763,GROUND-65,49,66,0,0,Math.PI*2);g.fill();g.stroke();
+ g.restore();
 
  // player: pastel bipedal rhinoceros-beetle hero
  if(!(p.inv&&Math.floor(p.inv/5)%2)){
