@@ -24,7 +24,7 @@ canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-renderin
 }
 </style>
 </head>
-<body><script>localStorage.setItem('maruchibiCurrentStage','world1-2.html');</script>
+<body><script>localStorage.setItem('maruchibiCurrentStage','world1-1.html');</script>
 <div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
 <div id="hint">← → 移動　A/Z/Space ジャンプ・空中で滑空　B 角すくい投げ　↓ しゃがむ</div>
 <div class="touch left"><div id="stickBase">
@@ -33,47 +33,52 @@ canvas{width:100vw;height:auto;max-height:100vh;aspect-ratio:16/9;image-renderin
 <div class="touch right actions"><button id="B">B</button><button id="J">A</button></div>
 <script>
 const c=document.getElementById('c'),g=c.getContext('2d');g.imageSmoothingEnabled=false;
-const carriedScore=Number(localStorage.getItem('maruchibiScore')||0),carriedStars=Number(localStorage.getItem('maruchibiStars')||0),carriedBig=localStorage.getItem('maruchibiBig')==='1',carriedGlove=false;localStorage.removeItem('maruchibiScore');localStorage.removeItem('maruchibiStars');localStorage.removeItem('maruchibiBig');localStorage.removeItem('maruchibiGlove');
 const LOOP2=localStorage.getItem('maruchibiLoop2')==='1';
 const W=960,H=540,GROUND=480,WORLD=6000;
-let keys={},cam=0,score=carriedScore,stars=carriedStars,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null;
-const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:carriedBig,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
-if(LOOP2){p.blueHorn=true;}
+let keys={},cam=0,camY=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
+const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,dashStrikeT:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
+if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
 
 
-if(p.big){let f=p.y+p.h;p.h=62;p.y=f-62}
-
-const grounds=[
- {x:0,y:GROUND,w:720,h:60},{x:840,y:GROUND,w:760,h:60},{x:1720,y:GROUND,w:620,h:60},
- {x:2460,y:GROUND,w:940,h:60},{x:3530,y:GROUND,w:690,h:60},{x:4350,y:GROUND,w:1650,h:60}
-];
+const grounds=[{x:0,y:480,w:700,h:70},{x:850,y:475,w:750,h:75},{x:1750,y:465,w:800,h:85},{x:2700,y:470,w:800,h:80},{x:3650,y:465,w:800,h:85},{x:4600,y:480,w:1400,h:70}];
 const ledges=[
- {x:430,y:336,w:144,h:48},{x:1040,y:288,w:144,h:48},{x:1420,y:352,w:96,h:48},
- {x:1900,y:304,w:144,h:48},{x:2740,y:336,w:144,h:48},{x:3150,y:256,w:144,h:48},
- {x:3710,y:320,w:144,h:48},{x:4580,y:272,w:144,h:48},{x:4920,y:352,w:96,h:48},
- {x:5200,y:288,w:144,h:48}
+{x:410,y:395,w:240,h:28},{x:650,y:340,w:240,h:28},{x:900,y:285,w:240,h:28},{x:1150,y:230,w:240,h:28},{x:1400,y:175,w:260,h:28},
+{x:1720,y:215,w:260,h:28},{x:2000,y:270,w:260,h:28},{x:2300,y:325,w:250,h:28},
+{x:2630,y:280,w:260,h:28},{x:2910,y:220,w:260,h:28},{x:3200,y:165,w:260,h:28},{x:3490,y:110,w:280,h:28},
+{x:3810,y:170,w:260,h:28},{x:4090,y:225,w:260,h:28},{x:4380,y:285,w:260,h:28},{x:4710,y:335,w:250,h:28},{x:5030,y:280,w:250,h:28},{x:5320,y:225,w:300,h:28}
 ];
-let blocks=[
- {x:478,y:240,type:'sap'},{x:1088,y:192,type:'leaf'},{x:1948,y:208,type:'leaf'},
- {x:2788,y:240,type:'leaf'},{x:3198,y:160,type:'sap'},{x:3758,y:224,type:'leaf'},
- {x:4628,y:176,type:'leaf'},{x:5248,y:192,type:'sap'}
+let blocks=[];
+// No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
+let pipes=[];
+let flyingStags=[
+ {x:1130,y:235,baseY:235,vx:3.6,minX:1050,maxX:1670,phase:0,alive:1,w:48,h:34},
+ {x:2950,y:235,baseY:235,vx:-3.9,minX:2730,maxX:3470,phase:0,alive:1,w:48,h:34},
+ {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:48,h:34}
 ];
-let pipes=[
- {x:910,y:GROUND-96,w:82,h:96,alive:1,phase:20},
- {x:2570,y:GROUND-120,w:82,h:120,alive:1,phase:100},
- {x:4440,y:GROUND-96,w:82,h:96,alive:1,phase:180}
+// A separate walking stag-beetle type patrols the upper branches.
+let walkingStags=[
+ {x:1500,y:126,v:-.7,minX:1450,maxX:1590,alive:1,w:38,h:44},
+ {x:3580,y:146,v:.7,minX:3540,maxX:3680,alive:1,w:38,h:44}
 ];
-let ants=[
- {x:620,y:GROUND-30,v:-1.15,alive:1,flat:0},{x:1280,y:GROUND-30,v:-1.05,alive:1,flat:0},
- {x:2140,y:GROUND-30,v:-1.2,alive:1,flat:0},{x:3000,y:GROUND-30,v:-1.1,alive:1,flat:0},
- {x:4000,y:GROUND-30,v:-1.15,alive:1,flat:0},{x:5100,y:GROUND-30,v:-1.1,alive:1,flat:0}
-];
-let snails=[
- {x:1500,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0},{x:2860,y:GROUND-38,v:-.75,alive:1,shell:0,shellV:0},
- {x:4720,y:GROUND-38,v:-.8,alive:1,shell:0,shellV:0}
-];
+// Forest insect folk: ladybug walkers and snail folk.
+let ants=[{x:520,y:450,v:-1.15,alive:1,flat:0},{x:3460,y:425,v:-1.1,alive:1,flat:0}];
+let snails=[{x:2660,y:432,v:-.75,alive:1,shell:0,shellV:0}];
 let pickups=[],particles=[],thrownStags=[];
-let airLeaves=[{x:720,y:300},{x:800,y:255},{x:880,y:300},{x:1510,y:260},{x:1590,y:215},{x:1670,y:260},{x:2380,y:300},{x:2460,y:255},{x:2540,y:300},{x:3440,y:245},{x:3520,y:200},{x:3600,y:245},{x:4380,y:285},{x:4460,y:240},{x:4540,y:285},{x:5350,y:230}].map(q=>({...q,w:24,h:24,got:0}));
+// Hanging vines: hold UP near a vine to grab, UP/DOWN to climb, jump to release.
+const hangingVines=[{x:1180,top:-35,bottom:215},{x:2500,top:55,bottom:300},{x:3600,top:-85,bottom:100},{x:4920,top:25,bottom:255}];
+let grabbedVine=null, vineJumpLock=0;
+
+// Discolored bark can be opened with the horn. Sap stays on the tree instead of appearing in a bottle.
+let sapSpots=[
+ {x:742,y:300,w:42,h:58,hit:0,sap:0},{x:1790,y:205,w:46,h:62,hit:0,sap:0},
+ {x:3690,y:260,w:44,h:60,hit:0,sap:0},{x:4960,y:315,w:46,h:60,hit:0,sap:0}
+];
+// Small blue berries grow directly from branches. One berry is worth five blue leaves.
+let blueBerries=[
+ {x:700,y:360,got:0},{x:1360,y:135,got:0},{x:2120,y:195,got:0},
+ {x:3220,y:265,got:0},{x:4010,y:275,got:0},{x:4780,y:260,got:0},{x:5310,y:430,got:0}
+].map(q=>({...q,w:24,h:24}));
+let airLeaves=[{x:710,y:345},{x:900,y:290},{x:1090,y:235},{x:1300,y:180},{x:1510,y:125},{x:1740,y:78},{x:2040,y:130},{x:2280,y:190},{x:2480,y:255},{x:3080,y:260},{x:3340,y:200},{x:3600,y:145},{x:3880,y:200},{x:4140,y:265},{x:4560,y:305},{x:4840,y:255}].map(q=>({...q,w:24,h:24,got:0}));
 
 /* LOOP2 ENHANCER */
 if(LOOP2){
@@ -181,7 +186,7 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
- if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
+ if(vineJumpLock)vineJumpLock--;if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.dashStrikeT)p.dashStrikeT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
 
  let L=keys.arrowleft||keys.a,Rt=keys.arrowright||keys.d,D=keys.arrowdown||keys.s,U=keys.arrowup,J=keys.z||keys[' '];
@@ -191,17 +196,28 @@ function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;
  prevHornL=!!L;prevHornR=!!Rt;if(hornReadyT>0)hornReadyT--;
  if(p.big&&p.on&&D){if(!p.crouch){setH(44);p.crouch=true}}else if(p.big&&p.crouch&&canStand()){setH(62);p.crouch=false}
  let max=p.crouch?2.2:7.2;if(p.hornDashT>0){p.vx=p.face*13.2}else{if(L){p.vx=Math.max(p.vx-.48,-max);p.face=-1}if(Rt){p.vx=Math.min(p.vx+.48,max);p.face=1}if(!L&&!Rt)p.vx*=.78;}
+ // Grab a hanging vine by holding UP close to it. The jump key releases it.
+ if(!grabbedVine&&U&&!vineJumpLock&&!p.on&&!p.hornDashT){
+   grabbedVine=hangingVines.find(v=>Math.abs(p.x+p.w/2-v.x)<27&&p.y+p.h>v.top+12&&p.y<v.bottom-8)||null;
+   if(grabbedVine){p.wallGrab=false;p.vx=0;p.vy=0;notice='ツルにつかまった！';noticeT=35;}
+ }
+ if(grabbedVine){
+   p.x=grabbedVine.x-p.w/2;p.vx=0;p.vy=0;p.on=false;p.glide=false;
+   if(U)p.y=Math.max(grabbedVine.top,p.y-3.3);
+   if(D)p.y=Math.min(grabbedVine.bottom-p.h,p.y+3.3);
+   if(J&&!jumpHeld){grabbedVine=null;vineJumpLock=16;p.vy=-15;p.vx=(Rt?1:L?-1:p.face)*6.5;}
+ }
  // Beetle wall-cling: hold toward a wall; A/Z jumps away from it.
  if(p.wallGrab){let holding=(p.wallDir<0&&L)||(p.wallDir>0&&Rt);if(!holding){p.wallGrab=false}else{p.vx=0;p.vy=0;p.glide=false;if(J&&!jumpHeld){p.wallGrab=false;p.wallLock=10;p.vx=-p.wallDir*8.8;p.vy=-16.2;p.face=-p.wallDir}}}
  if(J&&p.on&&!jumpHeld){if(p.crouch&&canStand()){setH(62);p.crouch=false}p.vy=-17.6;p.on=false}
  // Glide is player-only: after jumping, hold A while descending.
  p.glide=(!p.on&&J&&p.vy>0);
  jumpHeld=!!J;
- if(!p.wallGrab)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
+ if(!p.wallGrab&&!grabbedVine)p.vy=Math.min(p.vy+.58,14);else p.vy=0;
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch&&!hornBHeld){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
-   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
+   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.dashStrikeT=22;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
  hornBHeld=!!keys.punch;
@@ -211,8 +227,9 @@ if(keys.punch&&!hornBHeld){
  let hornActive=p.hornT<=12&&p.hornT>=6;
  if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
- if(p.hornDashT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+ if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
 
+ if(grabbedVine){p.vx=0;p.vy=0;}
  p.x+=p.vx;
  for(let s of solids())if(R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
  let oy=p.y;p.y+=p.vy;p.on=false;
@@ -248,6 +265,17 @@ if(keys.punch&&!hornBHeld){
    for(let b of loopBursts)b.t--;loopBursts=loopBursts.filter(b=>b.t>0);
  }
  if(hornHit){
+   // Horn exploration: crack discolored bark and expose fresh tree sap.
+   for(let sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){sp.hit=1;sp.sap=1;score+=150;notice='樹液が出てきた！';noticeT=75;debris(sp.x,sp.y,5)}
+   // Both stag types share the four-level horn rules. A dash upgrades one level.
+   const stagPower=(p.big?1:0)+((p.hornDashT>0||p.dashStrikeT>0)?1:0);
+   const stagStrike=(arr,fly)=>{for(const f of arr){if(!f.alive||f.thrown)continue;
+     const rr={x:f.x-5,y:f.y-5,w:f.w+10,h:f.h+10};
+     if(!R(hornHit,rr)&&!((p.hornDashT>0||p.dashStrikeT>0)&&R({x:Math.min(p.x,p.x-p.vx)-90,y:p.y-15,w:Math.abs(p.vx)+p.w+180,h:p.h+30},rr)))continue;
+     if(stagPower>=2){f.alive=0;debris(f.x,f.y,9);score+=350;}
+     else{f.thrown=1;f.throwVx=-p.face*(stagPower?13:7);f.throwVy=stagPower?-12:-7;f.safeT=65;score+=200;}
+   }};
+   stagStrike(flyingStags,true);stagStrike(walkingStags,false);
    /* BLUE HORN TERRAIN BREAK */
    if(p.blueHorn){
      if(typeof blocks!=='undefined')for(let b of blocks)if(!b.broken&&R(hornHit,{x:b.x,y:b.y,w:48,h:48})){if(typeof breakBlock==='function')breakBlock(b);else b.broken=1}
@@ -265,9 +293,12 @@ if(keys.punch&&!hornBHeld){
 
    // A large horn can also scoop-hit item blocks from the side.
    if(p.big)for(let b of blocks)if(!b.broken&&!b.hit&&R(hornHit,{x:b.x,y:b.y,w:48,h:48}))release(b);
-   for(let a of ants)if(a.alive&&!a.flat&&R(hornHit,{x:a.x,y:a.y,w:36,h:30})&&!a.thrown){
-     a.thrown=1;a.v=-p.face*(p.big?15:7);a.vy=p.big?-15:-8;a.on=false;a.superThrow=!!p.big;a.safeT=p.big?65:28;score+=150;
-   }
+   for(let a of ants)if(a.alive&&!a.flat&&!a.thrown&&R(hornHit,{x:a.x-7,y:a.y-7,w:50,h:44})){
+ const dash=p.hornDashT>0||p.dashStrikeT>0;
+ if(p.big&&dash){a.alive=0;debris(a.x,a.y,10);score+=350;continue}
+ const strong=p.big||dash;
+ a.thrown=1;a.v=-p.face*(strong?15:7);a.vy=strong?-15:-8;a.on=false;a.superThrow=strong;a.safeT=65;score+=150;
+}
    for(let s of snails)if(s.alive&&!s.shell&&R(hornHit,{x:s.x,y:s.y,w:38,h:38})&&!s.thrown){
      s.thrown=1;s.v=-p.face*(p.big?15:7);s.vy=p.big?-15:-8;s.on=false;s.superThrow=!!p.big;s.safeT=p.big?65:28;score+=150;
    }
@@ -337,16 +368,24 @@ if(keys.punch&&!hornBHeld){
    else hurt();
  }
 
- // Wooden tubes and stag beetles.
- for(let q of pipes){
-   if(!q.alive)continue;
-   if(q.stagGone){q.rise=0;q.bugDead=1;continue}
-   if(q.bugDead){q.rise=0;if(q.respawnT>0)q.respawnT--;else{q.bugDead=0;q.phase=0}continue}
-   q.phase=(q.phase+1)%240;
-   let r=q.phase<45?q.phase/45:q.phase<120?1:q.phase<165?1-(q.phase-120)/45:0;q.rise=r;
-   q.bug={x:q.x+5,y:q.y-12-r*62,w:72,h:64};
-   if(r>.15&&R(p,q.bug)&&p.hornT<=0)hurt();
+ // Flying stag-beetle folk patrol the open air instead of hiding in tubes.
+ for(let f of flyingStags){
+   if(!f.alive)continue;
+   if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
+   f.x+=f.vx;f.y=f.baseY;
+   if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
+   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
+ for(let f of walkingStags){
+   if(!f.alive)continue;
+   if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
+   f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
+   if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
+ }
+ // Fresh sap can be touched directly on the bark for a small recovery/power-up.
+ for(let sp of sapSpots)if(sp.sap&&R(p,{x:sp.x-5,y:sp.y+18,w:sp.w+18,h:sp.h})){sp.sap=0;p.big=true;if(canStand())setH(62);score+=500;notice='樹液パワー！';noticeT=80}
+ // Blue berries are deliberately chunky rewards: five leaves at once.
+ for(let b of blueBerries)if(!b.got&&R(p,b)){b.got=1;stars+=5;score+=700;notice='青い木の実  +5';noticeT=80;debris(b.x,b.y,5)}
 
  for(let t of thrownStags){t.x+=t.vx;t.y+=t.vy;t.vy+=.55;t.rot+=t.vr;t.t--}
  thrownStags=thrownStags.filter(t=>t.t>0&&t.y<650);
@@ -356,59 +395,102 @@ if(keys.punch&&!hornBHeld){
  for(let l of airLeaves)if(!l.got&&R(p,l)){l.got=1;stars++;score+=200;debris(l.x-12,l.y-12,4)}
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
 
- if(p.y>650)hurt();if(p.x>5660){score+=1000;nextStage('world1-3.html');return}
+ if(p.y>650)hurt();
+ if(!stageExit&&p.x>5660){stageExit=1;score+=1000;nextStage('world1-3.html');}
  cam=Math.max(0,Math.min(WORLD-W,p.x-300));
+ // v39: vertical camera only moves when the player climbs above the normal play band.
+ // Negative camY means the view has climbed upward; easing keeps it gentle.
+ let targetCamY=Math.max(-400,Math.min(0,p.y-280));
+ camY+=(targetCamY-camY)*0.12;
 }
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
 
+function drawForestBackdrop(){
+ // Deep forest rather than open sky.
+ let grad=g.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#183f3a');grad.addColorStop(.55,'#3f7650');grad.addColorStop(1,'#8dbb68');g.fillStyle=grad;g.fillRect(0,0,W,H);
+ // distant trunks with parallax
+ for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#315d43':'#294f3c';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
+ // huge soft leaf masses overhead
+ for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#4f8f55':'#5c9e5d';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
+ // shafts of light
+ g.save();g.globalAlpha=.10;g.fillStyle='#fff7bd';for(let i=0;i<5;i++){let x=80+i*230-(cam*.04%230);g.beginPath();g.moveTo(x,-20);g.lineTo(x+95,-20);g.lineTo(x+210,H);g.lineTo(x+120,H);g.closePath();g.fill()}g.restore();
+}
+function drawBranch(q,small=false){
+ let r=small?Math.min(18,q.h*.65):Math.min(34,q.h*.55),cy=q.y+q.h*.42;
+ g.fillStyle=small?'#91613e':'#815438';g.strokeStyle='#523825';g.lineWidth=4;
+ g.beginPath();g.moveTo(q.x-r,cy);g.bezierCurveTo(q.x+q.w*.25,q.y-8,q.x+q.w*.72,q.y+8,q.x+q.w+r,cy+3);g.bezierCurveTo(q.x+q.w*.72,q.y+q.h+8,q.x+q.w*.25,q.y+q.h-2,q.x-r,cy);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#a9794d';g.lineWidth=3;g.beginPath();g.moveTo(q.x+12,q.y+8);g.bezierCurveTo(q.x+q.w*.35,q.y+2,q.x+q.w*.62,q.y+14,q.x+q.w-12,q.y+7);g.stroke();
+ // moss edge
+ g.strokeStyle='#6fa84f';g.lineWidth=5;g.beginPath();g.moveTo(q.x+5,q.y+2);g.bezierCurveTo(q.x+q.w*.3,q.y-4,q.x+q.w*.7,q.y+4,q.x+q.w-5,q.y+1);g.stroke();
+}
+function giantLeaf(x,y,rx,ry,rot){g.save();g.translate(x,y);g.rotate(rot);g.fillStyle='#5fa95b';g.strokeStyle='#376f43';g.lineWidth=4;g.beginPath();g.ellipse(0,0,rx,ry,0,0,7);g.fill();g.stroke();g.strokeStyle='#d0d86c';g.lineWidth=3;g.beginPath();g.moveTo(-rx*.85,0);g.lineTo(rx*.85,0);g.stroke();for(let k=-2;k<=2;k++){let xx=k*rx*.25;g.beginPath();g.moveTo(xx,0);g.lineTo(xx+rx*.16,(k%2?-.62:.62)*ry);g.stroke()}g.restore()}
 function draw(){
  /* DRAW LOOP2 BULLETS */
- if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
- g.fillStyle='#17233b';g.fillRect(0,0,W,H);
- // underground cavern ceiling and distant rock silhouettes
- g.fillStyle='#293957';for(let i=0;i<18;i++){let x=i*360-cam*.12;g.beginPath();g.arc(x,55+(i%3)*18,95,0,Math.PI);g.fill()}
- g.fillStyle='#22304b';for(let i=0;i<16;i++){let x=i*430-cam*.3;g.beginPath();g.arc(x,478,120,Math.PI,0);g.fill()}
- g.save();g.translate(-cam,0);
+ if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
+ drawForestBackdrop();
+ g.save();g.translate(-cam,-camY);
+ // enormous foreground trunks establish the tiny-person scale
+ for(const t of [{x:760,w:170},{x:1760,w:220},{x:3650,w:190},{x:4930,w:230}]){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
+ // Each climbable vine is rooted in a woody overhead branch connected to a tree trunk.
+ for(const v of hangingVines){
+   const trunkX=v.x-112;
+   g.strokeStyle='#523722';g.lineWidth=32;g.lineCap='round';
+   g.beginPath();g.moveTo(trunkX,-260);g.lineTo(trunkX,v.top-28);g.quadraticCurveTo(v.x-48,v.top-43,v.x+38,v.top-36);g.stroke();
+   g.strokeStyle='#94643d';g.lineWidth=9;
+   g.beginPath();g.moveTo(trunkX,v.top-43);g.quadraticCurveTo(v.x-45,v.top-57,v.x+38,v.top-46);g.stroke();
+   g.fillStyle='#6d9e49';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
+ }
+ // Vines hang directly from the underside of their supporting branches.
+ for(const v of hangingVines){
+   g.strokeStyle='#315b34';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(v.x,v.top-36);g.bezierCurveTo(v.x-11,v.top+65,v.x+12,v.bottom-75,v.x,v.bottom);g.stroke();
+   g.strokeStyle='#79a65c';g.lineWidth=3;g.beginPath();g.moveTo(v.x-2,v.top);g.quadraticCurveTo(v.x+9,(v.top+v.bottom)/2,v.x,v.bottom);g.stroke();
+   for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
+ }
+ for(let q of grounds)drawBranch(q,false);
+ for(let l of ledges)if(!l.broken)drawBranch(l,true);
+ // giant leaves around the route; decorative, not invisible blocks
+ for(const L of [[520,365,72,34,-.25],[930,245,82,38,.18],[1510,75,90,42,-.12],[2220,155,76,35,.28],[3170,205,88,40,-.2],[3890,150,82,38,.2],[4700,250,95,44,-.18],[5350,390,100,46,.12]])giantLeaf(...L);
+ // Bark clues: small, naturally discolored patches. Horn hits make amber sap bead and drip from the wound.
+ for(let sp of sapSpots){
+   g.save();g.translate(sp.x+sp.w/2,sp.y+sp.h/2);g.fillStyle=sp.hit?'#5b3929':'#5e4a35';g.strokeStyle=sp.hit?'#3f291f':'#8a6d49';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,0,sp.w*.42,sp.h*.43,-.18,0,7);g.fill();g.stroke();
+   if(sp.hit){g.strokeStyle='#3b261e';g.lineWidth=3;g.beginPath();g.moveTo(-10,-12);g.lineTo(5,-2);g.lineTo(-3,10);g.stroke()}
+   if(sp.sap){g.fillStyle='#e3a12f';g.strokeStyle='#8c5a18';g.lineWidth=2;g.beginPath();g.arc(5,7,9,0,7);g.fill();g.stroke();g.beginPath();g.ellipse(7,21,5,11,0,0,7);g.fill();g.stroke()}
+   g.restore();
+ }
+ // Berry twigs: tiny blue fruit clusters attached to the branch, never floating in item boxes.
+ for(let b of blueBerries)if(!b.got){g.strokeStyle='#4c713e';g.lineWidth=3;g.beginPath();g.moveTo(b.x+12,b.y+2);g.lineTo(b.x+12,b.y+10);g.stroke();g.fillStyle='#3f8fd8';g.strokeStyle='#225986';g.lineWidth=2;for(const [dx,dy] of [[7,13],[16,13],[11,20]]){g.beginPath();g.arc(b.x+dx,b.y+dy,6,0,7);g.fill();g.stroke()}}
 
- for(let q of grounds){g.fillStyle='#5f5968';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#80758b';g.fillRect(q.x,q.y,q.w,9)}
- for(let l of ledges)if(!l.broken){g.fillStyle='#74677c';g.fillRect(l.x,l.y,l.w,l.h);g.fillStyle='#80758b';g.fillRect(l.x,l.y,l.w,8)}
-
- for(let b of blocks)if(!b.broken){g.fillStyle=b.hit?'#b99973':b.type==='bluehorn'?'#b9f6ff':b.type==='glove'?'#ffd0b0':'#ffd65a';g.fillRect(b.x,b.y,48,48);g.strokeStyle='#7e613e';g.lineWidth=3;g.strokeRect(b.x+2,b.y+2,44,44);if(!b.hit){if(b.type==='leaf')drawBlueLeaf(b.x+24,b.y+23,.72);else if(b.type==='sap')drawSapBottle(b.x+24,b.y+24,.62);else{g.fillStyle='#fff';g.font='26px sans-serif';g.fillText(b.type==='bluehorn'?'✦':'🥊',b.x+8,b.y+34)}}}
  for(let u of pickups){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='leaf'||u.type==='leafFx'){drawBlueLeaf(u.x+15,u.y+15,.9)}
  }
 
- // wooden tubes
- for(let q of pipes)if(q.alive){
-   g.fillStyle='#a66d3d';g.strokeStyle='#5c3824';g.lineWidth=4;g.fillRect(q.x+8,q.y,q.w-16,q.h);g.strokeRect(q.x+8,q.y,q.w-16,q.h);
-   for(let yy=q.y+12;yy<q.y+q.h;yy+=22){g.strokeStyle='#7b4d2e';g.beginPath();g.moveTo(q.x+10,yy);g.lineTo(q.x+q.w-10,yy+4);g.stroke()}
-   g.fillStyle='#bd8250';g.fillRect(q.x,q.y,q.w,23);g.strokeStyle='#5c3824';g.strokeRect(q.x,q.y,q.w,23);
-   if(q.rise>.02&&!q.bugDead){
-     let bx=q.x+41, feet=q.y+18-q.rise*62+48;
-     let headY=feet-38, bodyY=feet-19;
-     let jaw=(Math.sin(q.phase*.10)+1)/2,tipGap=3+jaw*25;
-     g.save();g.translate(bx,0);
-     // two human-like legs
-     g.strokeStyle='#53606d';g.lineWidth=5;g.lineCap='round';
-     let step=Math.sin(frame*.18)*3;
-     g.beginPath();g.moveTo(-7,bodyY+10);g.lineTo(-8-step,feet);g.moveTo(7,bodyY+10);g.lineTo(8+step,feet);g.stroke();
-     // humanoid torso
-     g.fillStyle='#8b79a8';g.strokeStyle='#53606d';g.lineWidth=3;
-     g.beginPath();g.ellipse(0,bodyY,14,18,0,0,7);g.fill();g.stroke();
-     // arms
-     g.beginPath();g.moveTo(-11,bodyY-5);g.lineTo(-20,bodyY+4);g.moveTo(11,bodyY-5);g.lineTo(20,bodyY+4);g.stroke();
-     // pale character head
-     g.fillStyle='#eadfcf';g.beginPath();g.ellipse(0,headY,13,12,0,0,7);g.fill();g.stroke();
-     g.fillStyle='#53606d';g.beginPath();g.arc(-4,headY,2,0,7);g.arc(4,headY,2,0,7);g.fill();
-     // stag-beetle mandibles retained, opening/closing horizontally
-     g.strokeStyle='#403744';g.lineWidth=8;g.lineCap='round';g.lineJoin='round';g.beginPath();
-     g.moveTo(-8,headY-5);g.quadraticCurveTo(-17-tipGap*.45,headY-15,-tipGap,headY-23);
-     g.moveTo(8,headY-5);g.quadraticCurveTo(17+tipGap*.45,headY-15,tipGap,headY-23);g.stroke();
-     g.lineWidth=5;g.beginPath();g.moveTo(-tipGap,headY-23);g.lineTo(-tipGap+7,headY-19);
-     g.moveTo(tipGap,headY-23);g.lineTo(tipGap-7,headY-19);g.stroke();
-     g.restore();
-   }
+ // Walking stag folk, with rounded heads and oversized mandibles.
+ for(let f of walkingStags)if(f.alive){
+   g.save();g.translate(f.x+19,f.y+22);if(f.v<0)g.scale(-1,1);
+   g.strokeStyle='#443c50';g.lineWidth=3;g.lineCap='round';g.fillStyle='#8c75a7';
+   g.beginPath();g.ellipse(-5,8,12,16,0,0,7);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-10,16);g.lineTo(-15,23);g.moveTo(3,17);g.lineTo(8,23);g.moveTo(-11,1);g.lineTo(-18,8);g.stroke();
+   g.fillStyle='#aa91bf';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
+   g.strokeStyle='#8c75a7';g.lineWidth=6;g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();g.strokeStyle='#443c50';g.lineWidth=1.5;
+   g.fillStyle='#333';g.beginPath();g.arc(10,-12,2,0,7);g.fill();g.restore();
+ }
+ // Flying rhinoceros-beetle folk: small, horizontal, single forward-pointing horn.
+ for(let f of flyingStags)if(f.alive){
+   let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.7)*4;
+   g.save();g.translate(cx,cy);g.scale(.66,.66);if(f.vx<0)g.scale(-1,1);
+   g.strokeStyle='#4a4650';g.lineWidth=3;g.lineCap='round';
+   g.fillStyle='#c2e9f1aa';g.beginPath();g.ellipse(-15,-12,19,6,-.35+flap*.018,0,7);g.fill();g.stroke();
+   g.fillStyle='#a86b3a';g.beginPath();g.ellipse(-15,4,17,14,0,0,7);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-23,10);g.lineTo(-36,19);g.moveTo(-10,13);g.lineTo(-23,24);g.moveTo(-20,-2);g.lineTo(-33,-11);g.stroke();
+   g.fillStyle='#dfb477';g.beginPath();g.ellipse(10,-2,16,15,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#3e4b4b';g.beginPath();g.arc(16,-5,2.5,0,7);g.fill();
+   // The horn projects horizontally from the forehead, with a small upward curl at its tip.
+   g.fillStyle='#9a6034';g.strokeStyle='#4a352a';g.lineWidth=2.5;g.beginPath();
+   g.moveTo(20,-12);g.bezierCurveTo(32,-12,45,-12,57,-21);
+   g.bezierCurveTo(49,-10,37,-5,22,-7);g.closePath();g.fill();g.stroke();
+   g.restore();
  }
 
  // thrown stag beetles (large-horn throw result)
@@ -465,14 +547,16 @@ function draw(){
  // debris
  for(let d of particles){g.fillStyle='#9b6a43';g.fillRect(d.x,d.y,d.r,d.r)}
 
- // underground goal: giant tree reaching beyond the top, with daylight pouring down
- let gx=5587;
- let glow=g.createLinearGradient(gx,0,gx,480);glow.addColorStop(0,'#fffbdccc');glow.addColorStop(.45,'#fff3a455');glow.addColorStop(1,'#fff3a400');
- g.fillStyle=glow;g.beginPath();g.moveTo(gx-150,0);g.lineTo(gx+150,0);g.lineTo(gx+72,480);g.lineTo(gx-72,480);g.closePath();g.fill();
- g.fillStyle='#8a5a32';g.strokeStyle='#5b3b24';g.lineWidth=5;g.beginPath();g.moveTo(gx-27,480);g.lineTo(gx-18,0);g.lineTo(gx+20,0);g.lineTo(gx+30,480);g.closePath();g.fill();g.stroke();
- g.strokeStyle='#6f482b';g.lineWidth=12;g.lineCap='round';g.beginPath();g.moveTo(gx-8,235);g.lineTo(gx-75,155);g.moveTo(gx+9,185);g.lineTo(gx+78,105);g.stroke();
- g.fillStyle='#70b957';g.strokeStyle='#477d3b';g.lineWidth=4;
- for(const [tx,ty,tr] of [[gx-82,135,48],[gx+83,88,52],[gx-30,55,58],[gx+35,28,62]]){g.beginPath();g.arc(tx,ty,tr,0,7);g.fill();g.stroke()}
+ // Giant destination tree: trunk extends beyond the screen; the hollow is part of it.
+ g.save();
+ g.fillStyle='#65442d';g.strokeStyle='#402c20';g.lineWidth=7;
+ g.beginPath();g.moveTo(5580,GROUND+250);g.lineTo(5580,-750);g.bezierCurveTo(5640,-880,5850,-860,5910,-740);g.lineTo(5910,GROUND+250);g.closePath();g.fill();g.stroke();
+ g.strokeStyle='#9b7046';g.lineWidth=13;g.lineCap='round';
+ for(const bx of [5615,5680,5750,5835]){g.beginPath();g.moveTo(bx,GROUND+110);g.bezierCurveTo(bx-28,GROUND-90,bx+28,-140,bx-8,-560);g.stroke()}
+ g.fillStyle='#487b38';g.strokeStyle='#315a2b';g.lineWidth=8;
+ for(const [lx,ly,rx,ry] of [[5620,-600,145,90],[5780,-670,180,115],[5920,-590,145,85]]){g.beginPath();g.ellipse(lx,ly,rx,ry,0,0,Math.PI*2);g.fill();g.stroke()}
+ g.fillStyle='#261e19';g.strokeStyle='#ad8557';g.lineWidth=9;g.beginPath();g.ellipse(5763,GROUND-65,49,66,0,0,Math.PI*2);g.fill();g.stroke();
+ g.restore();
 
  // player: pastel bipedal rhinoceros-beetle hero
  if(!(p.inv&&Math.floor(p.inv/5)%2)){
@@ -574,7 +658,7 @@ function draw(){
  }
  g.restore();
 
- g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-2',720,30);
+ g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-1',720,30);
  if(noticeT){g.fillStyle='#0009';g.fillRect(260,75,440,42);g.fillStyle='#fff';g.font='bold 20px sans-serif';g.fillText(notice,340,103)}
  if(dead){g.fillStyle='#0009';g.fillRect(0,0,W,H);g.fillStyle='#fff';g.font='bold 42px sans-serif';g.fillText('しょんぼり…',350,270)}
  if(won){g.fillStyle='#0009';g.fillRect(0,0,W,H);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.fillText('やったー！',365,235);g.font='25px sans-serif';g.fillText('ゴール！ SCORE '+score,330,285)}

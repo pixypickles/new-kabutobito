@@ -301,9 +301,12 @@ if(keys.punch&&!hornBHeld){
 
    // A large horn can also scoop-hit item blocks from the side.
    if(p.big)for(let b of blocks)if(!b.broken&&!b.hit&&R(hornHit,{x:b.x,y:b.y,w:48,h:48}))release(b);
-   for(let a of ants)if(a.alive&&!a.flat&&R(hornHit,{x:a.x,y:a.y,w:36,h:30})&&!a.thrown){
-     a.thrown=1;a.v=-p.face*(p.big?15:7);a.vy=p.big?-15:-8;a.on=false;a.superThrow=!!p.big;a.safeT=p.big?65:28;score+=150;
-   }
+   for(let a of ants)if(a.alive&&!a.flat&&!a.thrown&&R(hornHit,{x:a.x-7,y:a.y-7,w:50,h:44})){
+ const dash=p.hornDashT>0||p.dashStrikeT>0;
+ if(p.big&&dash){a.alive=0;debris(a.x,a.y,10);score+=350;continue}
+ const strong=p.big||dash;
+ a.thrown=1;a.v=-p.face*(strong?15:7);a.vy=strong?-15:-8;a.on=false;a.superThrow=strong;a.safeT=65;score+=150;
+}
    for(let s of snails)if(s.alive&&!s.shell&&R(hornHit,{x:s.x,y:s.y,w:38,h:38})&&!s.thrown){
      s.thrown=1;s.v=-p.face*(p.big?15:7);s.vy=p.big?-15:-8;s.on=false;s.superThrow=!!p.big;s.safeT=p.big?65:28;score+=150;
    }
