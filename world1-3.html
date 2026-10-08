@@ -44,7 +44,7 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 const grounds=[{x:0,y:480,w:1200,h:80},
  // The solid outer trunks have actual collision and can be wall-grabbed.
- {x:0,y:-2600,w:68,h:3080},{x:1132,y:-2600,w:68,h:3080}];
+ {x:0,y:-3500,w:68,h:3980},{x:1132,y:-3500,w:68,h:3980}];
 const ledges=[
 {x:165,y:375,w:225,h:28},
 {x:360,y:270,w:225,h:28},
@@ -70,7 +70,13 @@ const ledges=[
 {x:735,y:-1830,w:225,h:28},
 {x:550,y:-1935,w:225,h:28},
 {x:350,y:-2040,w:225,h:28},
-{x:575,y:-2040,w:250,h:28},{x:825,y:-2040,w:270,h:28}
+{x:575,y:-2040,w:250,h:28},{x:825,y:-2040,w:270,h:28},
+{x:740,y:-2150,w:205,h:28},{x:505,y:-2255,w:215,h:28},
+{x:270,y:-2360,w:215,h:28},{x:145,y:-2465,w:215,h:28},
+{x:390,y:-2570,w:215,h:28},{x:635,y:-2675,w:215,h:28},
+{x:830,y:-2780,w:215,h:28},{x:595,y:-2885,w:215,h:28},
+{x:370,y:-2990,w:215,h:28},{x:605,y:-3095,w:215,h:28},
+{x:835,y:-3200,w:260,h:28}
 ];
 
 // Solid outward-reaching branches interrupt the two wall-climb shortcuts.
@@ -79,7 +85,9 @@ const trunkObstacles=[
  {x:68,y:-260,w:260,h:48},{x:880,y:-580,w:252,h:48},
  {x:68,y:-920,w:290,h:48},{x:858,y:-1320,w:274,h:48},
  {x:68,y:-1740,w:275,h:48},{x:870,y:-1980,w:262,h:48},
- {x:560,y:-1415,w:60,h:510}
+ {x:560,y:-1415,w:60,h:510},
+ {x:68,y:-2365,w:240,h:44},{x:890,y:-2650,w:242,h:44},
+ {x:68,y:-2940,w:270,h:44}
 ];
 let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
@@ -88,7 +96,9 @@ let flyingStags=[
 {x:480,y:-480,baseY:-480,vx:2.5,minX:370,maxX:730,phase:0,alive:1,w:48,h:34},
 {x:450,y:-1260,baseY:-1260,vx:-2.7,minX:300,maxX:720,phase:0,alive:1,w:48,h:34},
 {x:500,y:-1850,baseY:-1850,vx:2.9,minX:360,maxX:780,phase:0,alive:1,w:48,h:34}
-,{x:755,y:-1040,baseY:-1040,vx:1.25,minX:700,maxX:835,phase:0,alive:1,w:48,h:34,kind:1},{x:830,y:-1190,baseY:-1190,vx:-1.1,minX:740,maxX:910,phase:2,alive:1,w:48,h:34,kind:3},{x:755,y:-1340,baseY:-1340,vx:1.3,minX:690,maxX:870,phase:4,alive:1,w:48,h:34,kind:4}];
+,{x:460,y:-2450,baseY:-2450,vx:1.2,minX:340,maxX:630,phase:1,alive:1,w:48,h:34,kind:2},
+{x:770,y:-2900,baseY:-2900,vx:-1.3,minX:620,maxX:920,phase:3,alive:1,w:48,h:34,kind:0},
+{x:755,y:-1040,baseY:-1040,vx:1.25,minX:700,maxX:835,phase:0,alive:1,w:48,h:34,kind:1},{x:830,y:-1190,baseY:-1190,vx:-1.1,minX:740,maxX:910,phase:2,alive:1,w:48,h:34,kind:3},{x:755,y:-1340,baseY:-1340,vx:1.3,minX:690,maxX:870,phase:4,alive:1,w:48,h:34,kind:4}];
 // A separate walking stag-beetle type patrols the upper branches.
 let walkingStags=[];
 // Forest insect folk: ladybug walkers and snail folk.
@@ -103,11 +113,11 @@ let pickups=[],particles=[],thrownStags=[];let springPollen=[];
 let elementalBerries=[{x:360,y:265,w:43,h:43,choice:-1,got:false,hitLock:0}];
 let pollenStun=0;
 // Hanging vines: hold UP near a vine to grab, UP/DOWN to climb, jump to release.
-const hangingVines=[{x:355,top:-470,bottom:-140},{x:770,top:-1080,bottom:-750},{x:355,top:-1710,bottom:-1380},{x:775,top:-2340,bottom:-2010}];
+const hangingVines=[{x:355,top:-470,bottom:-140},{x:770,top:-1080,bottom:-750},{x:355,top:-1710,bottom:-1380},{x:775,top:-2340,bottom:-2010},{x:435,top:-2960,bottom:-2650}];
 let grabbedVine=null, vineJumpLock=0;
 
 // Discolored bark can be opened with the horn. Sap stays on the tree instead of appearing in a bottle.
-let sapSpots=[{x:405,y:-1190,w:40,h:50,hit:0,sap:0}];
+let sapSpots=[{x:560,y:-1190,w:40,h:50,hit:0,sap:0}];
 // Small blue berries grow directly from branches. One berry is worth five blue leaves.
 let blueBerries=[{x:420,y:-520},{x:610,y:-1150},{x:400,y:-1780}].map(q=>({...q,w:24,h:24,got:0}));
 let airLeaves=ledges.filter((q,i)=>i%2===0).map(q=>({x:q.x+q.w/2,y:q.y-42,w:24,h:24,got:0}));
@@ -449,7 +459,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  for(let d of particles){d.x+=d.vx;d.y+=d.vy;d.vy+=.35;d.t--}particles=particles.filter(d=>d.t>0);
 
  if(p.y>650)hurt();
- if(!stageExit&&p.y<-1990&&p.x>950){stageExit=1;score+=1000;nextStage('world1-4.html');}
+ if(!stageExit&&p.y<-3150&&p.x>950){stageExit=1;score+=1000;nextStage('world1-4.html');}
  cam=Math.max(0,Math.min(WORLD-W,p.x-480));
  // v39: vertical camera only moves when the player climbs above the normal play band.
  // Negative camY means the view has climbed upward; easing keeps it gentle.
@@ -538,17 +548,17 @@ function draw(){
  // The climb ends in a horizontal path to a hollow inside a huge tree.
  g.save();
  g.fillStyle='#6b452d';g.strokeStyle='#49301f';g.lineWidth=6;
- g.beginPath();g.moveTo(940,-2380);g.lineTo(1120,-2380);g.lineTo(1120,-2010);g.lineTo(940,-2010);g.closePath();g.fill();g.stroke();
+ g.beginPath();g.moveTo(940,-3540);g.lineTo(1120,-3540);g.lineTo(1120,-3170);g.lineTo(940,-3170);g.closePath();g.fill();g.stroke();
  g.strokeStyle='#a27748';g.lineWidth=9;
- for(const x of [972,1014,1075]){g.beginPath();g.moveTo(x,-2360);g.quadraticCurveTo(x+22,-2200,x,-2030);g.stroke()}
+ for(const x of [972,1014,1075]){g.beginPath();g.moveTo(x,-3520);g.quadraticCurveTo(x+22,-3360,x,-3190);g.stroke()}
  g.fillStyle='#241c18';g.strokeStyle='#b28a5e';g.lineWidth=7;
- g.beginPath();g.ellipse(1010,-2094,45,61,0,0,7);g.fill();g.stroke();
- g.fillStyle='#e9f3af';g.font='bold 18px sans-serif';g.fillText('GOAL →',930,-2180);
+ g.beginPath();g.ellipse(1010,-3254,45,61,0,0,7);g.fill();g.stroke();
+ g.fillStyle='#e9f3af';g.font='bold 18px sans-serif';g.fillText('GOAL →',930,-3340);
  g.restore();
  // Tall visible trunks frame the entire vertical route.
  for(const [x,w] of [[0,68],[1132,68]]){
-   g.fillStyle='#66452d';g.fillRect(x,-2600,w,3080);
-   g.strokeStyle='#a17649';g.lineWidth=6;g.beginPath();g.moveTo(x+w*.45,-2600);g.lineTo(x+w*.55,480);g.stroke();
+   g.fillStyle='#66452d';g.fillRect(x,-3500,w,3980);
+   g.strokeStyle='#a17649';g.lineWidth=6;g.beginPath();g.moveTo(x+w*.45,-3500);g.lineTo(x+w*.55,480);g.stroke();
  }
 
  // giant leaves around the route; decorative, not invisible blocks

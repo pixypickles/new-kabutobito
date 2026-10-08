@@ -47,9 +47,9 @@ const ledges=[{x:1480,y:350,w:170,h:25},{x:2900,y:300,w:170,h:25},{x:4230,y:365,
 // Oversized cherry petals: level landing surfaces, drifting diagonally down.
 // Independently staggered positions and speeds avoid synchronized rows or empty waves.
 const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
-const driftingLeaves=Array.from({length:52},(_,i)=>({
+const driftingLeaves=Array.from({length:43},(_,i)=>({
  x:480+petalRand(i,1)*5060,y:-260+petalRand(i,2)*810,
- w:118,h:17,vx:-.55-petalRand(i,3)*.38,vy:.48+petalRand(i,4)*.32,
+ w:94,h:17,vx:-.55-petalRand(i,3)*.38,vy:.48+petalRand(i,4)*.32,
  drift:true,seed:i
 }));
 ledges.push(...driftingLeaves);
@@ -515,16 +515,16 @@ function draw(){
  }
  for(let q of grounds)drawBranch(q,false);
  for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#ff9bc5';g.strokeStyle='#b94380';g.lineWidth=3;
- // One oversized sakura petal: broad notched top, tapered lower tip.
- g.beginPath();g.moveTo(0,-12);
- g.bezierCurveTo(-10,-22,-38,-23,-l.w*.48,-4);
- g.bezierCurveTo(-l.w*.52,8,-27,18,0,20);
- g.bezierCurveTo(27,18,l.w*.52,8,l.w*.48,-4);
- g.bezierCurveTo(38,-23,10,-22,0,-12);
+ // Side profile: rounded base at left, single narrow tip at right with a tiny notch.
+ g.beginPath();g.moveTo(-l.w*.47,1);
+ g.bezierCurveTo(-l.w*.46,-13,-l.w*.19,-18,l.w*.08,-14);
+ g.bezierCurveTo(l.w*.29,-11,l.w*.39,-5,l.w*.48,-4);
+ g.lineTo(l.w*.39,0);g.lineTo(l.w*.48,4);
+ g.bezierCurveTo(l.w*.23,15,-l.w*.16,17,-l.w*.39,9);
+ g.quadraticCurveTo(-l.w*.49,6,-l.w*.47,1);
  g.closePath();g.fill();g.stroke();
- // Veins fan from the pointed base toward the cleft, not a horizontal bar.
- g.strokeStyle='#ffe0ef';g.lineWidth=2;g.beginPath();g.moveTo(0,15);g.quadraticCurveTo(-9,0,-24,-8);
- g.moveTo(0,15);g.quadraticCurveTo(9,0,24,-8);g.stroke();
+ g.strokeStyle='#ffe5f1';g.lineWidth=2;g.beginPath();
+ g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1,l.w*.36,0);g.stroke();
  g.restore()}else drawBranch(l,true);}
  drawSpringBlossoms();
  // giant leaves around the route; decorative, not invisible blocks

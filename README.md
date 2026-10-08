@@ -109,3 +109,6 @@ v60: Spring stages 1-1..1-3: mint-green old berry; large green horn-hit selector
 
 
 v61: Attribute horn colors now remain visible during normal movement as well as horn dash (World 1-1 to 1-3). World 1-2 falling platforms redrawn as single notched cherry-blossom petals.
+
+
+v62: Smaller, less crowded side-profile sakura petal platforms in 1-2; 1-3 sap attached to the center trunk and an extended upper climbing section with branches and butterflies.
