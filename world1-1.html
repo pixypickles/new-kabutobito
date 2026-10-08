@@ -38,6 +38,8 @@ const W=960,H=540,GROUND=480,WORLD=6000;
 let keys={},cam=0,camY=0,score=0,stars=0,dead=false,won=false,jumpHeld=false,notice='',noticeT=0,frame=0,hornHit=null,hornGuard=null,stageExit=0;
 const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,face:1,crouch:false,inv:0,anim:0,punchT:0,punchCd:0,hornT:0,hornCd:0,hornDashT:0,hornDashCd:0,dashStrikeT:0,wallGrab:false,wallDir:0,wallLock:0,blueHorn:LOOP2};
 if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
+if(localStorage.getItem('maruchibiBig')==='1'){p.big=true;setTimeout(()=>{if(p.h<62){let feet=p.y+p.h;p.h=62;p.y=feet-62;}},0)}
+if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 
 const grounds=[
