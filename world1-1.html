@@ -59,9 +59,9 @@ let blocks=[];
 // No pipe/stump enemies in the forest. Stag-beetle folk are aerial hunters.
 let pipes=[];
 let flyingStags=[
- {x:1130,y:235,baseY:235,vx:3.6,minX:1050,maxX:1670,phase:0,alive:1,w:66,h:42},
- {x:2950,y:235,baseY:235,vx:-3.9,minX:2730,maxX:3470,phase:0,alive:1,w:66,h:42},
- {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:66,h:42}
+ {x:1130,y:235,baseY:235,vx:3.6,minX:1050,maxX:1670,phase:0,alive:1,w:48,h:34},
+ {x:2950,y:235,baseY:235,vx:-3.9,minX:2730,maxX:3470,phase:0,alive:1,w:48,h:34},
+ {x:4390,y:270,baseY:270,vx:4.1,minX:4180,maxX:4930,phase:0,alive:1,w:48,h:34}
 ];
 // A separate walking stag-beetle type patrols the upper branches.
 let walkingStags=[
@@ -259,8 +259,15 @@ if(keys.punch&&!hornBHeld){
  if(hornHit){
    // Horn exploration: crack discolored bark and expose fresh tree sap.
    for(let sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){sp.hit=1;sp.sap=1;score+=150;notice='樹液が出てきた！';noticeT=75;debris(sp.x,sp.y,5)}
-   // Flying stag beetles can be knocked out of the air with the horn.
-   for(let f of flyingStags)if(f.alive&&R(hornHit,{x:f.x,y:f.y,w:f.w,h:f.h})){f.alive=0;score+=350;debris(f.x,f.y,8)}
+   // Both stag types share the four-level horn rules. A dash upgrades one level.
+   const stagPower=(p.big?1:0)+(p.hornDashT>0?1:0);
+   const stagStrike=(arr,fly)=>{for(const f of arr){if(!f.alive||f.thrown)continue;
+     const rr={x:f.x-5,y:f.y-5,w:f.w+10,h:f.h+10};
+     if(!R(hornHit,rr))continue;
+     if(stagPower>=2){f.alive=0;debris(f.x,f.y,9);score+=350;}
+     else{f.thrown=1;f.throwVx=-p.face*(stagPower?13:7);f.throwVy=stagPower?-12:-7;f.safeT=65;score+=200;}
+   }};
+   stagStrike(flyingStags,true);stagStrike(walkingStags,false);
    /* BLUE HORN TERRAIN BREAK */
    if(p.blueHorn){
      if(typeof blocks!=='undefined')for(let b of blocks)if(!b.broken&&R(hornHit,{x:b.x,y:b.y,w:48,h:48})){if(typeof breakBlock==='function')breakBlock(b);else b.broken=1}
@@ -352,12 +359,16 @@ if(keys.punch&&!hornBHeld){
 
  // Flying stag-beetle folk patrol the open air instead of hiding in tubes.
  for(let f of flyingStags){
-   if(!f.alive)continue;f.x+=f.vx;f.y=f.baseY;
+   if(!f.alive)continue;
+   if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
+   f.x+=f.vx;f.y=f.baseY;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
  for(let f of walkingStags){
-   if(!f.alive)continue;f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
+   if(!f.alive)continue;
+   if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
+   f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
    if(R(p,{x:f.x,y:f.y,w:f.w,h:f.h})&&!scoopProtected(f))hurt();
  }
  // Fresh sap can be touched directly on the bark for a small recovery/power-up.
@@ -442,7 +453,7 @@ function draw(){
  // Flying stag-beetle folk: humanoid bodies, beetle wings, and large mandibles.
  for(let f of flyingStags)if(f.alive){
    let cx=f.x+f.w/2,cy=f.y+f.h/2,flap=Math.sin(frame*.65)*5;
-   g.save();g.translate(cx,cy);if(f.vx<0)g.scale(-1,1);
+   g.save();g.translate(cx,cy);g.scale(.76,.76);if(f.vx<0)g.scale(-1,1);
    // Rounded body trails behind the head, with legs stretched backward.
    g.strokeStyle='#4b4354';g.lineWidth=3;g.lineCap='round';
    g.fillStyle='#d7eee6b8';g.beginPath();g.ellipse(-18,-10,17,7,-.3+flap*.015,0,7);g.fill();g.stroke();
@@ -452,8 +463,10 @@ function draw(){
    g.fillStyle='#f0e2d6';g.beginPath();g.ellipse(12,-2,17,16,0,0,7);g.fill();g.stroke();
    g.fillStyle='#343039';g.beginPath();g.arc(17,-6,2.3,0,7);g.fill();
    // Long pincer jaws face into the direction of flight.
-   g.lineWidth=5;g.beginPath();g.moveTo(23,-12);g.quadraticCurveTo(39,-26,44,-15);g.quadraticCurveTo(43,-9,36,-8);
-   g.moveTo(24,5);g.quadraticCurveTo(42,17,45,4);g.quadraticCurveTo(43,-1,37,-1);g.stroke();
+   g.lineWidth=4;g.beginPath();
+   // Mandibles open horizontally in front of the face, not vertically above it.
+   g.moveTo(23,-8);g.quadraticCurveTo(36,-13,48,-10);g.quadraticCurveTo(54,-8,51,-4);
+   g.moveTo(23,2);g.quadraticCurveTo(37,8,48,5);g.quadraticCurveTo(54,3,51,0);g.stroke();
    g.restore();
  }
 

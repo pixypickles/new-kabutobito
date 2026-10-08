@@ -64,3 +64,6 @@ Horn Dash now uses a horizontal airborne pose while preserving the hero’s comp
 
 
 v41: WORLD 1-1 forest systems: removed stump/pipe stag beetles, added flying stag-beetle folk, horn-reactive sap bark patches with direct tree sap, and branch-grown blue berries worth 5 blue leaves.
+
+
+v43: WORLD 1-1 flying stag smaller; horizontal forward mandibles; walking/flying stags share normal/dash horn throw/destroy rules.
