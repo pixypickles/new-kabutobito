@@ -352,7 +352,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  }
  let antContacts=ants.filter(a=>a.alive&&!a.flat&&!a.thrown&&!a.safeT&&R({x:p.x+5,y:p.y+7,w:p.w-10,h:p.h-11},{x:a.x+3,y:a.y+7,w:30,h:23})&&!scoopProtected({x:a.x,y:a.y,w:36,h:30}));
  let antStomp=antContacts.filter(a=>stompableTop(a,30));
- if(antStomp.length){for(let a of antStomp){a.flat=28;a.v=0;a.y+=18;score+=200}p.vy=-20.5}
+ if(antStomp.length){for(let a of antStomp){a.flat=28;a.v=0;a.y+=18;score+=200}p.vy=-15.5}
  if(antContacts.some(a=>!antStomp.includes(a)))hurt();
 
  // Snails: gravity + ledges. Stomp -> shell. Shell can be kicked and destroys almost everything.
@@ -384,7 +384,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  let stomp=sc.filter(s=>stompableTop(s,38));
  if(stomp.length){
    for(let s of stomp){if(!s.shell){s.shell=1;s.shellV=0;s.v=0;score+=200}else if(s.shellV){s.shellV=0;score+=100}}
-   p.vy=-20.5;
+   p.vy=-15.5;
  }
  for(let s of sc)if(!stomp.includes(s)){
    if(s.shell&&!s.shellV){kickShell(s,p.x<s.x?1:-1);p.vx+=(p.x<s.x?-2:2)}
@@ -398,7 +398,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    f.phase=(f.phase||0)+.17;f.x+=f.vx*(.22+.19*Math.sin(f.phase*.75));f.y=f.baseY+Math.sin(f.phase)*32+Math.sin(f.phase*.39)*18;
    if(f.x<f.minX||f.x>f.maxX)f.vx*=-1;
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
-     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-20.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
      else hurt();
    }
  }
@@ -407,7 +407,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
    f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
-     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-20.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
      else hurt();
    }
  }
