@@ -103,3 +103,6 @@ v57: 春1-1〜1-3の踏みつけ跳躍を控えめに。1-2は背景を若葉の
 v58: 1-1〜1-3の蝶々は接触無害（踏みつけは可能、鱗粉はしびれる）。1-2の空中足場を水平の巨大桜の花びらに変更し、52枚を独立したランダム位置・速度で連続的に斜め落下させる。
 
 v59: 大角の体色を濃く。1-2の蝶を上空で高さ違いに配置、足場を桜花弁の切れ込み形状へ。1-3に外壁の張り出し枝、中央の縦幹、左樹液・右蝶3匹の分岐を追加。
+
+
+v60: Spring stages 1-1..1-3: mint-green old berry; large green horn-hit selector fruit cycles red/blue/yellow, touch to equip. Only one elemental horn at a time, persistent across stages until death. Red strengthens normal horn to dash level and dash one further level; blue speeds walking; yellow increases jumps.
