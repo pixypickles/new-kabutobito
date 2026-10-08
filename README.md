@@ -70,3 +70,6 @@ v43: WORLD 1-1 flying stag smaller; horizontal forward mandibles; walking/flying
 
 
 v44: 1-1 flying beetles now rhinoceros beetles, forward horn; climbable vines (hold up, climb up/down, jump off); improved dash hit sweep.
+
+
+v45: 1-1のツルの上端に幹につながる木の枝を描画。飛行カブトムシは茶・琥珀色へ変更。歩行クワガタのアゴを胴体と同じ紫色に変更。

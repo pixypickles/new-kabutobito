@@ -437,9 +437,18 @@ function draw(){
  g.save();g.translate(-cam,-camY);
  // enormous foreground trunks establish the tiny-person scale
  for(const t of [{x:760,w:170},{x:1760,w:220},{x:3650,w:190},{x:4930,w:230}]){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
- // Vines hang from the canopy and can be climbed.
+ // Each climbable vine is rooted in a woody overhead branch connected to a tree trunk.
  for(const v of hangingVines){
-   g.strokeStyle='#315b34';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(v.x,v.top-22);g.bezierCurveTo(v.x-11,v.top+65,v.x+12,v.bottom-75,v.x,v.bottom);g.stroke();
+   const trunkX=v.x-112;
+   g.strokeStyle='#523722';g.lineWidth=32;g.lineCap='round';
+   g.beginPath();g.moveTo(trunkX,-260);g.lineTo(trunkX,v.top-28);g.quadraticCurveTo(v.x-48,v.top-43,v.x+38,v.top-36);g.stroke();
+   g.strokeStyle='#94643d';g.lineWidth=9;
+   g.beginPath();g.moveTo(trunkX,v.top-43);g.quadraticCurveTo(v.x-45,v.top-57,v.x+38,v.top-46);g.stroke();
+   g.fillStyle='#6d9e49';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
+ }
+ // Vines hang directly from the underside of their supporting branches.
+ for(const v of hangingVines){
+   g.strokeStyle='#315b34';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(v.x,v.top-36);g.bezierCurveTo(v.x-11,v.top+65,v.x+12,v.bottom-75,v.x,v.bottom);g.stroke();
    g.strokeStyle='#79a65c';g.lineWidth=3;g.beginPath();g.moveTo(v.x-2,v.top);g.quadraticCurveTo(v.x+9,(v.top+v.bottom)/2,v.x,v.bottom);g.stroke();
    for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
@@ -469,7 +478,7 @@ function draw(){
    g.beginPath();g.ellipse(-5,8,12,16,0,0,7);g.fill();g.stroke();
    g.beginPath();g.moveTo(-10,16);g.lineTo(-15,23);g.moveTo(3,17);g.lineTo(8,23);g.moveTo(-11,1);g.lineTo(-18,8);g.stroke();
    g.fillStyle='#efe1d6';g.beginPath();g.arc(6,-11,12,0,7);g.fill();g.stroke();
-   g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();
+   g.strokeStyle='#8c75a7';g.lineWidth=6;g.beginPath();g.moveTo(11,-17);g.quadraticCurveTo(25,-27,27,-16);g.moveTo(11,-6);g.quadraticCurveTo(25,1,28,-10);g.stroke();g.strokeStyle='#443c50';g.lineWidth=1.5;
    g.fillStyle='#333';g.beginPath();g.arc(10,-12,2,0,7);g.fill();g.restore();
  }
  // Flying rhinoceros-beetle folk: small, horizontal, single forward-pointing horn.
@@ -478,12 +487,12 @@ function draw(){
    g.save();g.translate(cx,cy);g.scale(.66,.66);if(f.vx<0)g.scale(-1,1);
    g.strokeStyle='#4a4650';g.lineWidth=3;g.lineCap='round';
    g.fillStyle='#c2e9f1aa';g.beginPath();g.ellipse(-15,-12,19,6,-.35+flap*.018,0,7);g.fill();g.stroke();
-   g.fillStyle='#78b6a7';g.beginPath();g.ellipse(-15,4,17,14,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#a86b3a';g.beginPath();g.ellipse(-15,4,17,14,0,0,7);g.fill();g.stroke();
    g.beginPath();g.moveTo(-23,10);g.lineTo(-36,19);g.moveTo(-10,13);g.lineTo(-23,24);g.moveTo(-20,-2);g.lineTo(-33,-11);g.stroke();
-   g.fillStyle='#dcf2df';g.beginPath();g.ellipse(10,-2,16,15,0,0,7);g.fill();g.stroke();
+   g.fillStyle='#dfb477';g.beginPath();g.ellipse(10,-2,16,15,0,0,7);g.fill();g.stroke();
    g.fillStyle='#3e4b4b';g.beginPath();g.arc(16,-5,2.5,0,7);g.fill();
    // The horn projects horizontally from the forehead, with a small upward curl at its tip.
-   g.fillStyle='#86c8d8';g.strokeStyle='#4a4650';g.lineWidth=2.5;g.beginPath();
+   g.fillStyle='#9a6034';g.strokeStyle='#4a352a';g.lineWidth=2.5;g.beginPath();
    g.moveTo(20,-12);g.bezierCurveTo(32,-12,45,-12,57,-21);
    g.bezierCurveTo(49,-10,37,-5,22,-7);g.closePath();g.fill();g.stroke();
    g.restore();
