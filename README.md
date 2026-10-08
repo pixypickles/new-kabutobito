@@ -67,3 +67,6 @@ v41: WORLD 1-1 forest systems: removed stump/pipe stag beetles, added flying sta
 
 
 v43: WORLD 1-1 flying stag smaller; horizontal forward mandibles; walking/flying stags share normal/dash horn throw/destroy rules.
+
+
+v44: 1-1 flying beetles now rhinoceros beetles, forward horn; climbable vines (hold up, climb up/down, jump off); improved dash hit sweep.
