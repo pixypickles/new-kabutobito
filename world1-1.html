@@ -241,9 +241,10 @@ if(keys.punch&&!hornBHeld){
 
  if(grabbedVine){p.vx=0;p.vy=0;}
  p.x+=p.vx;
- for(let s of solids())if(R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
+ for(let s of solids())if(!ledges.includes(s)&&R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
  let oy=p.y;p.y+=p.vy;p.on=false;
  for(let s of solids())if(R(p,s)){
+   if(ledges.includes(s)&&!(p.vy>=0&&oy+p.h<=s.y+8))continue;
    if(p.vy>0&&oy+p.h<=s.y+8){p.y=s.y-p.h;p.vy=0;p.on=true;p.glide=false;p.wallGrab=false}
    else if(p.vy<0&&oy>=s.y+s.h-8){p.y=s.y+s.h;p.vy=1;if(s.block&&!s.block.hit)release(s.block)}
  }
