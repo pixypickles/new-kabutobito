@@ -169,3 +169,6 @@ v81: World 2-3 stag beetles walk back and forth on their branches and cannot be 
 
 
 v82: World 2-4 rebuilt from the summer World 2-1 forest: three mandatory one-on-one stag-beetle miniboss duels (3 horn hits each) and a final king stag boss (7 hits). Each duel seals the arena with tree barriers until victory. Stag beetles telegraph straight charges, pause to recover, and cannot be safely stomped because their pincers point upward. The exit unlocks only after all four fights.
+
+
+v83: All four stag-beetle duel arenas in World 2-4 have continuous solid floors; no gaps inside the locked battles.
