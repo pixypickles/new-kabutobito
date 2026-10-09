@@ -181,7 +181,52 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
  ladybugs.length=0;
 }
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
-function update(){
+
+// Spring beehives: harmless until touched; then release three pursuing workers.
+let springHives=[{'x': 850, 'y': 210, 'active': false, 'pulse': 0}, {'x': 2170, 'y': 310, 'active': false, 'pulse': 0}, {'x': 3500, 'y': 230, 'active': false, 'pulse': 0}, {'x': 4720, 'y': 330, 'active': false, 'pulse': 0}];
+let springBees=[];
+function spawnSpringBees(x,y,count=3){
+ for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1});
+}
+function updateSpringBees(){
+ for(const h of springHives){
+   if(h.pulse>0)h.pulse--;
+   if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.active=true;h.pulse=50;spawnSpringBees(h.x,h.y,3);
+     notice='ハチの巣！ ミツバチが出てきた！';noticeT=80;
+   }
+ }
+ for(const b of springBees){
+   b.phase+=.22;
+   let tx=p.x+p.w/2,ty=p.y+p.h/2;
+   b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
+   b.vy=Math.max(-2.4,Math.min(2.4,b.vy+(ty-b.y)*.003));
+   b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;b.t--;
+   if(R(p,{x:b.x-12,y:b.y-12,w:24,h:24})&&p.inv===0)hurt();
+ }
+ springBees=springBees.filter(b=>b.t>0);
+}
+function drawSpringBees(){
+ for(const h of springHives){
+   g.save();g.translate(h.x,h.y);
+   g.fillStyle='#e8ac40';g.strokeStyle='#895322';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,0,23,30,0,0,Math.PI*2);g.fill();g.stroke();
+   g.strokeStyle='#bf812a';g.lineWidth=2;
+   for(let j=-2;j<=2;j++){g.beginPath();g.ellipse(0,j*9,Math.sqrt(Math.max(0,23*23-j*j*30)),5,0,0,Math.PI);g.stroke();}
+   g.fillStyle='#57351e';g.beginPath();g.ellipse(0,9,8,10,0,0,Math.PI*2);g.fill();
+   g.restore();
+ }
+ for(const b of springBees){
+   g.save();g.translate(b.x,b.y);
+   g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
+   g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#ffd451';g.strokeStyle='#674323';g.lineWidth=2;g.beginPath();g.ellipse(0,0,12,9,0,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#56341b';g.fillRect(-4,-8,3,16);g.fillRect(3,-8,3,16);
+   g.beginPath();g.moveTo(-12,0);g.lineTo(-19,4);g.lineTo(-12,6);g.fill();
+   g.restore();
+ }
+}
+function update(){updateSpringBees();
  for(let i=0;i<driftingLeaves.length;i++){
  const l=driftingLeaves[i];l.x+=l.vx;l.y+=l.vy;
  // Recycle only after the leaf has dropped well below the playable view.
@@ -495,7 +540,7 @@ function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
  drawForestBackdrop();drawSpringFlowers();
- g.save();g.translate(-cam,-camY);
+ g.save();g.translate(-cam,-camY);drawSpringBees();
  // enormous foreground trunks establish the tiny-person scale
  for(const t of []){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
  // Each climbable vine is rooted in a woody overhead branch connected to a tree trunk.

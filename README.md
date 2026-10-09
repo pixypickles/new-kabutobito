@@ -112,3 +112,6 @@ v61: Attribute horn colors now remain visible during normal movement as well as 
 
 
 v62: Smaller, less crowded side-profile sakura petal platforms in 1-2; 1-3 sap attached to the center trunk and an extended upper climbing section with branches and butterflies.
+
+
+v63: Spring beehives in World 1-1 through 1-4. Contact triggers three pursuing worker bees; untouched hives remain peaceful. World 1-4 has many hives and an aerial queen bee boss with periodic worker summons and straight diagonal stinger dives. Queen takes five hits; defeating her opens the gate.

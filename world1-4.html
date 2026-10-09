@@ -70,7 +70,7 @@ let switches=[
  {x:6035,y:168,w:34,h:28,on:0}
 ];
 let gate={x:6100,y:0,w:56,h:480,open:0};
-let boss={blueHP:3,x:5720,y:GROUND-76,w:68,h:76,vx:-1.15,alive:1,phase:0};
+let boss={blueHP:5,x:5750,y:95,w:86,h:78,vx:0,alive:1,phase:0,mode:0,attackT:0,dx:0,dy:0,hitCd:0};
 let throwers=[
  {x:690,y:GROUND-50,w:38,h:50,cd:55,alive:1,face:-1},
  {x:1540,y:GROUND-50,w:38,h:50,cd:95,alive:1,face:-1},
@@ -190,7 +190,52 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
  ladybugs.length=0;
 }
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
-function update(){/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
+
+// Spring beehives: harmless until touched; then release three pursuing workers.
+let springHives=[{'x': 490, 'y': 350, 'active': false, 'pulse': 0}, {'x': 1030, 'y': 245, 'active': false, 'pulse': 0}, {'x': 1510, 'y': 330, 'active': false, 'pulse': 0}, {'x': 2090, 'y': 230, 'active': false, 'pulse': 0}, {'x': 2750, 'y': 320, 'active': false, 'pulse': 0}, {'x': 3410, 'y': 220, 'active': false, 'pulse': 0}, {'x': 4050, 'y': 320, 'active': false, 'pulse': 0}, {'x': 4760, 'y': 235, 'active': false, 'pulse': 0}, {'x': 5290, 'y': 280, 'active': false, 'pulse': 0}];
+let springBees=[];
+function spawnSpringBees(x,y,count=3){
+ for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1});
+}
+function updateSpringBees(){
+ for(const h of springHives){
+   if(h.pulse>0)h.pulse--;
+   if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.active=true;h.pulse=50;spawnSpringBees(h.x,h.y,3);
+     notice='ハチの巣！ ミツバチが出てきた！';noticeT=80;
+   }
+ }
+ for(const b of springBees){
+   b.phase+=.22;
+   let tx=p.x+p.w/2,ty=p.y+p.h/2;
+   b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
+   b.vy=Math.max(-2.4,Math.min(2.4,b.vy+(ty-b.y)*.003));
+   b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;b.t--;
+   if(R(p,{x:b.x-12,y:b.y-12,w:24,h:24})&&p.inv===0)hurt();
+ }
+ springBees=springBees.filter(b=>b.t>0);
+}
+function drawSpringBees(){
+ for(const h of springHives){
+   g.save();g.translate(h.x,h.y);
+   g.fillStyle='#e8ac40';g.strokeStyle='#895322';g.lineWidth=3;
+   g.beginPath();g.ellipse(0,0,23,30,0,0,Math.PI*2);g.fill();g.stroke();
+   g.strokeStyle='#bf812a';g.lineWidth=2;
+   for(let j=-2;j<=2;j++){g.beginPath();g.ellipse(0,j*9,Math.sqrt(Math.max(0,23*23-j*j*30)),5,0,0,Math.PI);g.stroke();}
+   g.fillStyle='#57351e';g.beginPath();g.ellipse(0,9,8,10,0,0,Math.PI*2);g.fill();
+   g.restore();
+ }
+ for(const b of springBees){
+   g.save();g.translate(b.x,b.y);
+   g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
+   g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#ffd451';g.strokeStyle='#674323';g.lineWidth=2;g.beginPath();g.ellipse(0,0,12,9,0,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#56341b';g.fillRect(-4,-8,3,16);g.fillRect(3,-8,3,16);
+   g.beginPath();g.moveTo(-12,0);g.lineTo(-19,4);g.lineTo(-12,6);g.fill();
+   g.restore();
+ }
+}
+function update(){updateSpringBees();/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
  if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
@@ -407,28 +452,34 @@ if(keys.punch&&!hornBHeld){
  }
  enemyShots=enemyShots.filter(sh=>sh.t>0);
 
- // Boss encounter: this stage is about evasion, not defeating it.
+ // Queen bee: hovering, periodic worker summons, diagonal straight-line stinger dive.
  if(boss.alive){
-   boss.phase++;boss.x+=boss.vx;
-   if(boss.jumpV===undefined){boss.jumpV=0;boss.groundY=GROUND-boss.h}
-   if(boss.phase%145===35&&Math.abs(boss.jumpV)<.01)boss.jumpV=-9.2;
-   boss.jumpV+=.48;boss.groundY+=boss.jumpV;
-   if(boss.groundY>GROUND-boss.h){boss.groundY=GROUND-boss.h;boss.jumpV=0}
-   if(boss.phase%92===0){
-     let dir=p.x<boss.x?-1:1;
-     bossShots.push({x:boss.x+boss.w/2+dir*24,y:boss.y+10,vx:dir*5.0,vy:-12.6,r:10,t:230});
+   boss.phase++;
+   if(boss.hitCd>0)boss.hitCd--;
+   if(boss.phase%175===0)spawnSpringBees(boss.x+40,boss.y+48,3);
+   if(boss.mode===0){
+     boss.x=5750+Math.sin(boss.phase*.017)*175;
+     boss.y=80+Math.sin(boss.phase*.039)*22;
+     if(boss.phase%125===45){
+       boss.mode=1;boss.attackT=0;
+       let dx=p.x+p.w/2-(boss.x+boss.w/2),dy=p.y+p.h/2-(boss.y+boss.h/2);
+       let len=Math.hypot(dx,dy)||1;
+       boss.dx=dx/len*10.5;boss.dy=Math.max(3,dy/len*10.5);
+     }
+   }else if(boss.mode===1){
+     boss.x+=boss.dx;boss.y+=boss.dy;boss.attackT++;
+     if(boss.attackT>39||boss.y>GROUND-75){boss.mode=2;boss.attackT=0}
+   }else{
+     boss.y-=5.2;boss.attackT++;
+     if(boss.y<85||boss.attackT>70)boss.mode=0;
    }
-   if(boss.x<5480||boss.x>6010)boss.vx*=-1;
-   boss.y=boss.groundY-Math.abs(Math.sin(boss.phase*.035))*5;
    let br={x:boss.x,y:boss.y,w:boss.w,h:boss.h};
-   if(R(p,br)&&p.hornT<=0&&p.punchT<=0)hurt();
-   // Attacks only repel the boss briefly; they never kill it.
-   if((hornHit&&R(hornHit,br))||(punch&&R(punch,br))){
-     if(p.blueHorn&&hornHit&&R(hornHit,br)){
-       if(!p.hornBossLatch){p.hornBossLatch=1;boss.blueHP--;boss.x+=p.face*78;boss.vx=p.face*3.2;bossShots=[];debris(boss.x,boss.y,12);score+=350;
-       if(boss.blueHP<=0){boss.alive=0;bossShots=[];debris(boss.x,boss.y,30);score+=3000;notice='青角でボスを倒した！';noticeT=120}
-       else{notice='青角が効いた！ あと '+boss.blueHP+'発';noticeT=70}}
-     }else{boss.x+=p.face*55;boss.vx=p.face*2.4;notice='効いてない…逃げよう！';noticeT=70}
+   if(R(p,br)&&p.inv===0)hurt();
+   if(boss.hitCd===0&&((hornHit&&R(hornHit,br))||(punch&&R(punch,br)))){
+     boss.blueHP--;boss.hitCd=42;boss.mode=2;boss.attackT=0;
+     debris(boss.x,boss.y,12);score+=350;
+     notice='女王蜂にヒット！ あと '+boss.blueHP+'発';noticeT=70;
+     if(boss.blueHP<=0){boss.alive=0;springBees=[];gate.open=1;score+=3000;notice='女王蜂を倒した！';noticeT=130}
    }
  }
  for(let sh of bossShots){
@@ -492,7 +543,7 @@ function draw(){
  for(let x=190;x<W;x+=310){g.fillRect(x,0,12,H);g.fillRect(x-60,180,132,10)}
  for(let x=120;x<W;x+=290){g.fillStyle='#678c67';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
  drawSpringFlowers();
- g.save();g.translate(-cam,0);
+ g.save();g.translate(-cam,0);drawSpringBees();
  drawSpringBlossoms();
 
  for(let q of grounds){
@@ -687,17 +738,21 @@ function draw(){
  }else{
    g.fillStyle='#b7d6df';g.fillRect(gate.x,gate.y,gate.w,gate.h);
  }
- // boss: cannot be defeated; player activates the four switches while evading it
+ // Queen bee, wings, striped body, crown and long downward stinger.
  if(boss.alive){
-   let bx=boss.x+boss.w/2,fy=boss.y+boss.h;
-   g.save();g.translate(bx,0);if(boss.vx<0)g.scale(-1,1);
-   g.strokeStyle='#313858';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(-17,fy-29);g.lineTo(-24,fy-4);g.lineTo(-33,fy);g.moveTo(17,fy-29);g.lineTo(24,fy-4);g.lineTo(33,fy);g.stroke();
-   g.fillStyle='#e97824';g.strokeStyle='#8d3b13';g.lineWidth=5;g.beginPath();g.ellipse(0,fy-39,31,34,0,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle='#ffd08a';g.lineWidth=2;g.beginPath();g.moveTo(0,fy-68);g.lineTo(0,fy-12);g.stroke();
-   g.globalAlpha=.45;g.fillStyle='#fff0c9';g.beginPath();g.ellipse(-10,fy-47,8,19,-.25,0,Math.PI*2);g.fill();g.globalAlpha=1;
-   g.fillStyle='#f39a3c';g.strokeStyle='#8d3b13';g.lineWidth=4;g.beginPath();g.ellipse(-29,fy-55,14,12,-.35,0,Math.PI*2);g.ellipse(29,fy-55,14,12,.35,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle='#b85319';g.lineWidth=11;g.beginPath();g.moveTo(-29,fy-53);g.lineTo(-42,fy-37);g.lineTo(-39,fy-22);g.moveTo(29,fy-53);g.lineTo(43,fy-38);g.lineTo(40,fy-22);g.stroke();
-   g.fillStyle='#ffd2a0';g.strokeStyle='#8d3b13';g.lineWidth=5;g.beginPath();g.ellipse(5,fy-79,29,25,0,0,Math.PI*2);g.fill();g.stroke();g.fillStyle='#4b2616';g.beginPath();g.arc(15,fy-82,4.2,0,Math.PI*2);g.fill();g.globalAlpha=.78;g.beginPath();g.arc(5,fy-83,3.2,0,Math.PI*2);g.fill();g.globalAlpha=1;
-   g.strokeStyle='#ff9b3e';g.lineWidth=11;g.lineCap='round';g.beginPath();g.moveTo(15,fy-96);g.quadraticCurveTo(37,fy-119,42,fy-143);g.stroke();g.strokeStyle='#fff0ce';g.lineWidth=4;g.beginPath();g.moveTo(17,fy-97);g.quadraticCurveTo(36,fy-118,40,fy-140);g.stroke();g.strokeStyle='#ff9b3e';g.lineWidth=7;g.beginPath();g.moveTo(41,fy-139);g.lineTo(29,fy-128);g.moveTo(41,fy-139);g.lineTo(51,fy-130);g.stroke();
-   g.fillStyle='#c85b1e';g.strokeStyle='#ffe1b3';g.lineWidth=2;g.beginPath();g.moveTo(-13,fy-61);g.lineTo(14,fy-61);g.lineTo(20,fy-43);g.lineTo(0,fy-34);g.lineTo(-20,fy-43);g.closePath();g.fill();g.stroke();g.restore();
+   let cx=boss.x+boss.w/2,cy=boss.y+boss.h/2;
+   g.save();g.translate(cx,cy);
+   g.fillStyle='#f5fcffb8';g.strokeStyle='#9cc4ca';g.lineWidth=2;
+   g.beginPath();g.ellipse(-29,-26,29,16,-.5,0,Math.PI*2);
+   g.ellipse(29,-26,29,16,.5,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#f8c64b';g.strokeStyle='#6c431d';g.lineWidth=4;
+   g.beginPath();g.ellipse(0,10,35,32,0,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#54371d';g.fillRect(-28,-7,56,10);g.fillRect(-31,15,62,9);
+   g.fillStyle='#ffe39a';g.beginPath();g.arc(0,-24,25,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#3b2921';g.beginPath();g.arc(-9,-26,3.5,0,7);g.arc(9,-26,3.5,0,7);g.fill();
+   g.fillStyle='#efb82b';g.beginPath();g.moveTo(-18,-44);g.lineTo(-23,-65);g.lineTo(-6,-54);g.lineTo(0,-72);g.lineTo(8,-54);g.lineTo(24,-65);g.lineTo(18,-44);g.closePath();g.fill();g.stroke();
+   g.fillStyle='#594032';g.beginPath();g.moveTo(-10,39);g.lineTo(0,65);g.lineTo(10,39);g.fill();
+   g.restore();
  }
  // boss-thrown heavy wooden balls
  for(let sh of bossShots){
