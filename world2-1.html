@@ -674,12 +674,26 @@ function draw(){
    const colors=['#e65f3d','#328ccc','#7aaf47','#dba542','#877bd1'];
    g.save();g.translate(cx,cy);g.scale(scale*(face<0?-1:1),scale);
    g.strokeStyle='#43545a';g.lineWidth=2.3;
-   // Four elongated wings are paired symmetrically above/below the abdomen.
+   // Two distinct pairs attached to the thorax. Each wing sweeps outward,
+   // with a slim root and rounded tip; no crossing ellipses or propeller shape.
    for(const side of [-1,1]){
-     g.fillStyle='#d6f8f5b8';g.beginPath();
-     g.ellipse(4,side*20,31,8,side*.62,0,Math.PI*2);g.fill();g.stroke();
-     g.fillStyle='#e5ffff99';g.beginPath();
-     g.ellipse(21,side*17,29,7,-side*.48,0,Math.PI*2);g.fill();g.stroke();
+     g.fillStyle='#d9f7f5d9';g.strokeStyle='#76b5be';g.lineWidth=1.7;
+     // Forewing: taller and nearer the head.
+     g.beginPath();g.moveTo(-12,side*0);
+     g.bezierCurveTo(-19,side*14,-21,side*43,-9,side*53);
+     g.bezierCurveTo(4,side*58,8,side*48,5,side*40);
+     g.bezierCurveTo(0,side*25,-4,side*9,-12,side*0);
+     g.closePath();g.fill();g.stroke();
+     // Hindwing: separate root just behind forewing, angled backwards.
+     g.beginPath();g.moveTo(1,side*1);
+     g.bezierCurveTo(10,side*16,17,side*34,29,side*40);
+     g.bezierCurveTo(42,side*46,45,side*34,37,side*28);
+     g.bezierCurveTo(25,side*18,12,side*7,1,side*1);
+     g.closePath();g.fill();g.stroke();
+     // Subtle wing veins.
+     g.strokeStyle='#a3d6d7';g.lineWidth=1;
+     g.beginPath();g.moveTo(-12,side*1);g.lineTo(-5,side*45);
+     g.moveTo(1,side*1);g.lineTo(34,side*33);g.stroke();
    }
    // Long segmented abdomen trails behind the head to the right.
    g.fillStyle=colors[kind%colors.length];

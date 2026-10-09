@@ -154,3 +154,6 @@ v75: 1-3 boundary clamps preserve wall-grabbing. Summer 2-1 dragonflies no longe
 
 
 v76: World 1-4 butterflies and queen bee can now be stomped from above, with bounce and defeat; queen remains harmless on ordinary body contact. World 2-1 dragonflies redrawn in side profile with elongated horizontal body, visible large side eye, legs, and four paired symmetrical wings.
+
+
+v77: Redesigned summer dragonfly wings: four anatomically grouped, distinct tapered wings, two on each side of the thorax with separated roots, no intersecting ellipse propeller shapes.
