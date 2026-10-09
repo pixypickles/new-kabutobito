@@ -139,3 +139,6 @@ v70: World 1-2 adds buffered/coyote jumps and carries the player with descending
 
 
 v71: World 1-4 alternating low/high solid branches with tight detours; sap droplets grow from bark instead of bottles; queen movement smoothed and stinger-only contact hitbox; humanoid spear/stinger bees; spring butterflies shed sparkling pollen with electrical stun effect.
+
+
+v72: 1-4 butterflies can be defeated with horn attacks and stop producing pollen once defeated. 1-4 sap now appears by horn-scraping bark on solid trunks, matching 1-1/1-3. 1-1 and 1-3 hive dash detection moved after the horn hitbox is computed, with falling hive and staggered five-bee response.

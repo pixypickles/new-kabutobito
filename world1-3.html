@@ -248,7 +248,7 @@ function updateSpringBees(){
  for(const h of springHives){
    if(h.pulse>0)h.pulse--;
    if(h.fallen){h.y+=12;continue;}
-   if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
+   if(!h.active&&!(p.hornDashT>0||p.dashStrikeT>0)&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
      h.active=true;h.pulse=60;h.triggerT=48;
      notice='ハチの巣が揺れている！';noticeT=75;
    }
@@ -269,6 +269,7 @@ function updateSpringBees(){
 }
 function drawSpringBees(){
  for(const h of springHives){
+   if(h.fallen&&h.y>600)continue;
    g.save();g.translate(h.x,h.y);
    g.fillStyle='#e8ac40';g.strokeStyle='#895322';g.lineWidth=3;
    g.beginPath();g.ellipse(0,0,23,30,0,0,Math.PI*2);g.fill();g.stroke();
@@ -333,6 +334,14 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
  if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
  // Horn hitbox is ready: defeat any worker bee it touches.
+ // Dash collision uses the freshly computed horn hitbox (not last frame's null hitbox).
+ if((p.hornDashT>0||p.dashStrikeT>0)&&hornHit){
+   for(const h of springHives)if(!h.fallen&&R(hornHit,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.fallen=true;h.active=true;h.triggerT=0;
+     for(let i=0;i<5;i++)springBees.push({x:h.x+(i-2)*22,y:(typeof GROUND==='number'?GROUND:500)+65+i*12,vx:0,vy:-3,t:460,phase:i*1.8,delay:35+i*18,fromBelow:true});
+     notice='ハチの巣が落ちた！';noticeT=85;score+=200;
+   }
+ }
  if(hornHit){
    for(const b of springBees)if(b.t>0&&b.delay<=0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
    if(typeof freeBees!=='undefined')for(const b of freeBees)if(b.alive&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.alive=false;score+=150;debris(b.x,b.y,5)}

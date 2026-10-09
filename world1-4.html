@@ -93,12 +93,19 @@ const forestObstacles=[
 ];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
+let sapSpots=[
+ {x:980,y:300,w:45,h:56,hit:0,sap:0},
+ {x:1700,y:250,w:45,h:56,hit:0,sap:0},
+ {x:3190,y:295,w:45,h:56,hit:0,sap:0},
+ {x:3910,y:245,w:45,h:56,hit:0,sap:0},
+ {x:4680,y:255,w:45,h:56,hit:0,sap:0}
+];
 // Visible, accessible power-ups throughout the branch course.
 pickups.push(...[
- {x:990,y:325,type:'sap'},{x:1300,y:280,type:'leaf'},
- {x:2050,y:250,type:'sap'},{x:2780,y:280,type:'leaf'},
- {x:3530,y:245,type:'sap'},{x:4300,y:290,type:'leaf'},
- {x:5010,y:250,type:'sap'},{x:5600,y:355,type:'leaf'}
+ {x:1300,y:280,type:'leaf'},
+ {x:2780,y:280,type:'leaf'},
+ {x:4300,y:290,type:'leaf'},
+ {x:5600,y:355,type:'leaf'}
 ].map(u=>({...u,w:30,h:30,vy:0,t:20,got:0})));
 let lifts=[];
 let grasshoppers=[];let flyers=[];
@@ -236,7 +243,7 @@ function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
 let springPollen=[];let pollenStun=0;
-let springButterflies=[{x:650,y:145,phase:0},{x:1440,y:175,phase:2},{x:2040,y:125,phase:4},{x:3050,y:155,phase:1},{x:3830,y:120,phase:3},{x:4730,y:170,phase:5}];
+let springButterflies=[{x:650,y:145,phase:0,alive:true},{x:1440,y:175,phase:2,alive:true},{x:2040,y:125,phase:4,alive:true},{x:3050,y:155,phase:1,alive:true},{x:3830,y:120,phase:3,alive:true},{x:4730,y:170,phase:5,alive:true}];
  function springButterfly(cx,cy,face=1,flap=0,scale=1,kind=0){
   g.save();g.translate(cx,cy);g.scale(face*scale,scale);
   let wing=.66+Math.sin(frame*.37+flap)*.31;
@@ -257,7 +264,8 @@ let springButterflies=[{x:650,y:145,phase:0},{x:1440,y:175,phase:2},{x:2040,y:12
  }
 function drawSpringButterflies(){
  for(let i=0;i<springButterflies.length;i++){
- const b=springButterflies[i],yy=b.y+Math.sin(frame*.055+b.phase)*19;
+ const b=springButterflies[i];if(!b.alive)continue;
+ const yy=b.y+Math.sin(frame*.055+b.phase)*19;
  springButterfly(b.x+Math.sin(frame*.015+b.phase)*35,yy,1,b.phase,.72,i%5);
  }
 }
@@ -336,6 +344,7 @@ function update(){updateSpringBees();updateStraightBees();/*LOOP2_BLUE_PERMANENT
  if(pollenStun>0){pollenStun--;p.vx=0;}
  for(let i=0;i<springButterflies.length;i++){
    let b=springButterflies[i];
+   if(!b.alive)continue;
    if(frame%155===(i*23)%155){let x=b.x+Math.sin(frame*.015+b.phase)*35,y=b.y+Math.sin(frame*.055+b.phase)*19+14;
      springPollen.push({x,y,vx:Math.sin(i*3)*.45,vy:1.2,t:160});}
  }
@@ -426,6 +435,13 @@ if(keys.punch&&!hornBHeld){
    }
    loopBullets=loopBullets.filter(q=>q.t>0&&q.x>-150&&q.x<(typeof WORLD!=='undefined'?WORLD:8000)+150&&q.y>-150&&q.y<650);if(loopBullets.length>12)loopBullets.splice(0,loopBullets.length-12);
    for(let b of loopBursts)b.t--;loopBursts=loopBursts.filter(b=>b.t>0);
+ }
+ if(hornHit)for(const sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){
+   sp.hit=1;sp.sap=1;score+=150;notice='樹皮を削った！ 樹液が出た！';noticeT=80;debris(sp.x,sp.y,6);
+ }
+ if(hornHit)for(const b of springButterflies)if(b.alive!==false){
+   let bx=b.x+Math.sin(frame*.015+b.phase)*35,by=b.y+Math.sin(frame*.055+b.phase)*19;
+   if(R(hornHit,{x:bx-27,y:by-37,w:54,h:65})){b.alive=false;score+=300;debris(bx,by,10)}
  }
  if(hornHit)for(const b of straightBees)if(b.alive&&R(hornHit,{x:b.x-14,y:b.y-12,w:28,h:24})){b.alive=false;score+=150;debris(b.x,b.y,6)}
  if(hornHit){
@@ -582,6 +598,9 @@ if(keys.punch&&!hornBHeld){
  }
  bossShots=bossShots.filter(sh=>sh.t>0);
 
+ for(const sp of sapSpots)if(sp.sap&&R(p,{x:sp.x-5,y:sp.y+12,w:sp.w+18,h:sp.h})){
+   sp.sap=0;p.big=true;if(canStand())setH(62);score+=500;notice='樹液パワー！';noticeT=80;
+ }
  for(let u of pickups){u.t++;if(u.t<15){u.y+=u.vy;u.vy+=.22}if(R(p,u)){if(u.type==='sap'){p.big=true;if(canStand())setH(62);score+=500}else if(u.type==='bluehorn'){p.blueHorn=true;p.big=true;if(canStand())setH(62);notice='青角パワー回復！';noticeT=120;score+=800}else if(u.type==='glove'){stars++;score+=300}else if(u.type==='leaf'){stars++;score+=300}u.got=1}}
  pickups=pickups.filter(u=>!u.got);
  for(let l of airLeaves)if(!l.got&&R(p,l)){l.got=1;stars++;score+=200;debris(l.x-12,l.y-12,4)}
@@ -948,6 +967,14 @@ function draw(){
    g.strokeStyle='#53606d';g.lineWidth=2;g.beginPath();g.arc((p.crouch?13:7),headY+5,4,0,Math.PI);g.stroke();
    g.restore();
    }
+ }
+ for(const sp of sapSpots){
+   g.save();g.translate(sp.x,sp.y);
+   g.fillStyle='#5a3527';g.strokeStyle='#c0916b';g.lineWidth=2;
+   g.beginPath();g.ellipse(16,21,16,25,.25,0,Math.PI*2);g.fill();g.stroke();
+   g.strokeStyle='#38231b';g.beginPath();g.moveTo(9,12);g.lineTo(23,29);g.stroke();
+   if(sp.sap){g.fillStyle='#e3a12f';g.strokeStyle='#875522';g.beginPath();g.arc(16,21,10,0,7);g.fill();g.stroke();g.beginPath();g.ellipse(19,37,5,12,0,0,7);g.fill();g.stroke();}
+   g.restore();
  }
  for(const t of forestObstacles){
  g.fillStyle='#805033';g.strokeStyle='#4d2e1d';g.lineWidth=5;g.fillRect(t.x,t.y,t.w,t.h);g.strokeRect(t.x,t.y,t.w,t.h);
