@@ -178,3 +178,6 @@ v84: World 2-4 stag minibosses and final boss visibly rotate 90 degrees for hori
 
 
 v85: World 3-1 autumn forest, built on the 2-1 horizontal forest route. Giant-jumping grasshopper folk, mantis folk launching horizontal scythe slashes that stop on branches, orange/red/yellow autumn foliage, autumn-tinted forest. Horn and stomp can defeat autumn enemies.
+
+
+v86: Fixed autumn insect AI running twice per frame. Grasshopper jump velocity and horizontal movement reduced, jump cooldown extended. Mantis slash velocity reduced from 8.2 to 3.8 per frame and firing interval extended from 105 to 155 frames.
