@@ -228,7 +228,7 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
-let springHives=[{'x': 920, 'y': -1320, 'active': false, 'pulse': 0}, {'x': 310, 'y': -2060, 'active': false, 'pulse': 0}, {'x': 930, 'y': -2810, 'active': false, 'pulse': 0}];
+let springHives=[{'x': 920, 'y': -1320, 'active': false, 'pulse': 0, 'fallen': false, 'triggerT': 0}, {'x': 310, 'y': -2060, 'active': false, 'pulse': 0, 'fallen': false, 'triggerT': 0}, {'x': 930, 'y': -2810, 'active': false, 'pulse': 0, 'fallen': false, 'triggerT': 0}];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
@@ -247,10 +247,13 @@ function updateSpringBees(){
 
  for(const h of springHives){
    if(h.pulse>0)h.pulse--;
+   if(h.fallen){h.y+=12;continue;}
    if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
-     h.active=true;h.pulse=50;spawnSpringBees(h.x,h.y,3);
-     notice='ハチの巣！ ミツバチが出てきた！';noticeT=80;
+     h.active=true;h.pulse=60;h.triggerT=48;
+     notice='ハチの巣が揺れている！';noticeT=75;
    }
+   if(h.triggerT>0){h.triggerT--;if(h.triggerT===0)spawnSpringBees(h.x,h.y,3);}
+
  }
  for(const b of springBees){
    if(b.t<=0)continue;
@@ -259,7 +262,7 @@ function updateSpringBees(){
    let tx=p.x+p.w/2,ty=p.y+p.h/2;
    b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
    b.vy=Math.max(-2.4,Math.min(2.4,b.vy+(ty-b.y)*.003));
-   b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;b.t--;
+   if(b.fromBelow&&b.y>p.y+160){b.y-=4.8;}else{b.fromBelow=false;b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;}b.t--;
    if(R(p,{x:b.x-12,y:b.y-12,w:24,h:24})&&p.inv===0)hurt();
  }
  springBees=springBees.filter(b=>b.t>0);

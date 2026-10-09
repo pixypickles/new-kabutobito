@@ -127,3 +127,6 @@ v66: World 1-4 rebuilt as open spring forest athletics (no castle switches/guard
 
 
 v67: brighter fine pollen in all three spring stages. World 1-4: no castle blocks, forest trunk obstacles, butterfly decorations and straight bees; normal hive contact warns then releases 3 bees, horn dash drops hive and spawns 5 bees rising from below; queen worker summons slowed.
+
+
+v68: Rebuilt 1-4 branch obstacle course based on 1-1, with varied upper/lower detours and narrow routes. Removed surprise straight-line bees. Hives in 1-1, 1-3 and 1-4 fall to horn dash and release five delayed bees from below; ordinary touch releases three after a warning. 1-2 deliberately remains hive-free.

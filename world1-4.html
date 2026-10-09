@@ -44,28 +44,36 @@ if(LOOP2){p.blueHorn=true;}
 if(p.big){let f=p.y+p.h;p.h=62;p.y=f-62}
 
 const grounds=[
- {x:0,y:GROUND,w:710,h:60},{x:860,y:GROUND,w:660,h:60},
- {x:1660,y:GROUND,w:710,h:60},{x:2510,y:GROUND,w:640,h:60},
- {x:3310,y:GROUND,w:710,h:60},{x:4170,y:GROUND,w:650,h:60},
- {x:4960,y:GROUND,w:1440,h:60}
-];
+ {x:0,y:GROUND,w:830,h:60},{x:920,y:GROUND,w:850,h:60},
+ {x:1870,y:GROUND,w:820,h:60},{x:2810,y:GROUND,w:800,h:60},
+ {x:3750,y:GROUND,w:830,h:60},{x:4700,y:GROUND,w:1700,h:60}
+ ];
+// A forest of branch routes: elevated bridges, stepped inclines and low overhangs.
+// Narrow branches are one-way landing surfaces; no stone blocks.
 const ledges=[
- {x:1370,y:294,w:170,h:22,oneway:1},{x:1550,y:240,w:145,h:22,oneway:1},{x:2350,y:320,w:145,h:22,oneway:1},{x:2550,y:298,w:140,h:22,oneway:1},{x:3310,y:280,w:165,h:22,oneway:1},{x:3500,y:230,w:150,h:22,oneway:1},{x:4130,y:335,w:145,h:22,oneway:1},{x:4380,y:320,w:150,h:22,oneway:1},
- {x:530,y:366,w:155,h:22,oneway:1},{x:740,y:294,w:145,h:22,oneway:1},
- {x:1110,y:340,w:165,h:22,oneway:1},{x:1490,y:295,w:145,h:22,oneway:1},
- {x:1930,y:350,w:160,h:22,oneway:1},{x:2280,y:265,w:155,h:22,oneway:1},
- {x:2840,y:345,w:155,h:22,oneway:1},{x:3150,y:275,w:165,h:22,oneway:1},
- {x:3650,y:348,w:165,h:22,oneway:1},{x:4000,y:265,w:145,h:22,oneway:1},
- {x:4480,y:344,w:165,h:22,oneway:1},{x:4800,y:280,w:145,h:22,oneway:1},
- {x:5220,y:320,w:145,h:22,oneway:1},{x:5650,y:350,w:145,h:22,oneway:1},
- {x:5950,y:275,w:145,h:22,oneway:1}
-];
+ {x:500,y:405,w:175,h:20,oneway:1},{x:680,y:355,w:175,h:20,oneway:1},
+ {x:900,y:315,w:190,h:20,oneway:1},{x:1140,y:320,w:220,h:20,oneway:1},
+ {x:1410,y:375,w:200,h:20,oneway:1},{x:1660,y:410,w:180,h:20,oneway:1},
+ {x:1930,y:415,w:175,h:20,oneway:1},{x:2110,y:365,w:175,h:20,oneway:1},
+ {x:2290,y:315,w:190,h:20,oneway:1},{x:2500,y:270,w:180,h:20,oneway:1},
+ {x:2720,y:325,w:175,h:20,oneway:1},{x:2950,y:390,w:195,h:20,oneway:1},
+ {x:3220,y:420,w:180,h:20,oneway:1},{x:3430,y:365,w:180,h:20,oneway:1},
+ {x:3660,y:305,w:190,h:20,oneway:1},{x:3890,y:255,w:195,h:20,oneway:1},
+ {x:4160,y:305,w:185,h:20,oneway:1},{x:4410,y:375,w:205,h:20,oneway:1},
+ {x:4710,y:410,w:180,h:20,oneway:1},{x:4900,y:355,w:180,h:20,oneway:1},
+ {x:5110,y:295,w:185,h:20,oneway:1},{x:5360,y:360,w:185,h:20,oneway:1},
+ {x:5620,y:420,w:180,h:20,oneway:1}
+ ];
 let blocks=[]; // no castle blocks in spring forest
 // Forest obstacle trunks: weave over, under, or through narrow gaps.
+// Impassable trunk sections shape up/down detours and tight passages.
 const forestObstacles=[
- {x:1530,y:335,w:90,h:145},{x:2510,y:0,w:90,h:270},
- {x:3480,y:325,w:95,h:155},{x:4320,y:0,w:100,h:295},
- {x:5020,y:335,w:90,h:145}
+ {x:1050,y:0,w:95,h:245},     // low passage below
+ {x:1800,y:405,w:95,h:75},    // climb over
+ {x:2760,y:0,w:100,h:245},    // duck below
+ {x:3640,y:355,w:95,h:125},   // climb over
+ {x:4590,y:0,w:100,h:285},    // narrow lower route
+ {x:5350,y:390,w:95,h:90}     // climb over
 ];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
@@ -190,17 +198,20 @@ let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,p
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
 let springHives=[
-{x:1040,y:305,active:false,pulse:0,fallen:false,triggerT:0},
-{x:2150,y:235,active:false,pulse:0,fallen:false,triggerT:0},
-{x:3190,y:315,active:false,pulse:0,fallen:false,triggerT:0},
-{x:4090,y:230,active:false,pulse:0,fallen:false,triggerT:0},
-{x:4930,y:305,active:false,pulse:0,fallen:false,triggerT:0}
+ {x:770,y:305,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:1250,y:275,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:2190,y:315,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:2600,y:220,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3340,y:375,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3980,y:205,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:4490,y:325,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:5150,y:245,active:false,pulse:0,fallen:false,triggerT:0}
 ];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
-let springButterflies=[{x:680,y:145,phase:0},{x:1790,y:170,phase:2},{x:3010,y:120,phase:4},{x:4590,y:150,phase:1}];
+let springButterflies=[{x:650,y:145,phase:0},{x:1440,y:175,phase:2},{x:2040,y:125,phase:4},{x:3050,y:155,phase:1},{x:3830,y:120,phase:3},{x:4730,y:170,phase:5}];
 function drawSpringButterflies(){
  for(const b of springButterflies){let yy=b.y+Math.sin(frame*.055+b.phase)*19;g.save();g.translate(b.x+Math.sin(frame*.015+b.phase)*35,yy);
   g.fillStyle='#f4a5df';g.strokeStyle='#b96ab1';g.lineWidth=2;
@@ -208,13 +219,9 @@ function drawSpringButterflies(){
   g.fillStyle='#9164b5';g.beginPath();g.ellipse(0,1,5,13,0,0,7);g.fill();g.restore();
  }
 }
-let straightBees=[{x:900,y:255,from:900,to:1500,speed:3.3,alive:true},{x:1830,y:215,from:1830,to:2410,speed:3.6,alive:true},{x:2770,y:250,from:2770,to:3320,speed:3.8,alive:true},{x:3570,y:205,from:3570,to:4160,speed:3.5,alive:true},{x:4410,y:245,from:4410,to:4960,speed:4.1,alive:true}];
-function updateStraightBees(){for(const b of straightBees){if(!b.alive)continue;b.x+=b.speed;if(b.x>b.to)b.x=b.from;
- if(R(p,{x:b.x-12,y:b.y-11,w:24,h:22})&&p.inv===0)hurt();}}
-function drawStraightBees(){for(const b of straightBees){if(!b.alive)continue;g.save();g.translate(b.x,b.y);
- g.fillStyle='#e9faff';g.beginPath();g.ellipse(-5,-9,9,5,-.4,0,7);g.ellipse(6,-9,9,5,.4,0,7);g.fill();
- g.fillStyle='#ffdb57';g.strokeStyle='#6c4723';g.lineWidth=2;g.beginPath();g.ellipse(0,0,13,9,0,0,7);g.fill();g.stroke();
- g.fillStyle='#56371e';g.fillRect(-5,-8,3,16);g.fillRect(3,-8,3,16);g.restore();}}
+let straightBees=[];
+function updateStraightBees(){}
+function drawStraightBees(){}
 function updateSpringBees(){
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
@@ -580,6 +587,11 @@ function draw(){
  for(let q of grounds){g.fillStyle='#865436';g.fillRect(q.x,q.y,q.w,q.h);
   g.fillStyle='#7dc64b';g.fillRect(q.x,q.y,q.w,10);
   g.strokeStyle='#ad7551';g.lineWidth=3;g.beginPath();g.moveTo(q.x+12,q.y+30);g.lineTo(q.x+q.w-15,q.y+30);g.stroke();}
+ // Diagonal connecting branches visually signal a climb, without becoming solid walls.
+ for(const [x1,y1,x2,y2] of [[510,415,850,360],[1950,425,2470,320],[3220,430,3810,310],[4700,420,5260,305]]){
+   g.strokeStyle='#68402b';g.lineWidth=20;g.lineCap='round';g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+   g.strokeStyle='#87c952';g.lineWidth=5;g.beginPath();g.moveTo(x1,y1-10);g.lineTo(x2,y2-10);g.stroke();
+ }
  for(let l of ledges)if(!l.broken){
    if(l.oneway){
      g.fillStyle='#99603b';g.fillRect(l.x,l.y,l.w,l.h);
