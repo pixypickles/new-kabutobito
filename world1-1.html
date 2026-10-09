@@ -197,12 +197,22 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
-let springHives=[{'x': 720, 'y': 330, 'active': false, 'pulse': 0}, {'x': 1720, 'y': 250, 'active': false, 'pulse': 0}, {'x': 2890, 'y': 310, 'active': false, 'pulse': 0}, {'x': 4180, 'y': 260, 'active': false, 'pulse': 0}];
+let springHives=[{'x': 1720, 'y': 250, 'active': false, 'pulse': 0}, {'x': 2890, 'y': 310, 'active': false, 'pulse': 0}, {'x': 4180, 'y': 260, 'active': false, 'pulse': 0}];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1});
 }
 function updateSpringBees(){
+ const beeHit=typeof hornHit!=='undefined'&&hornHit;
+ for(const b of springBees){
+   if(beeHit&&R(beeHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5);}
+ }
+ if(typeof freeBees!=='undefined')for(const b of freeBees){
+   if(!b.alive)continue;
+   b.phase+=.035;b.x+=Math.sin(b.phase)*.55;b.y=b.baseY+Math.sin(b.phase*2)*17;
+   if(beeHit&&R(beeHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.alive=false;score+=150;debris(b.x,b.y,5);}
+ }
+
  for(const h of springHives){
    if(h.pulse>0)h.pulse--;
    if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
@@ -211,6 +221,7 @@ function updateSpringBees(){
    }
  }
  for(const b of springBees){
+   if(b.t<=0)continue;
    b.phase+=.22;
    let tx=p.x+p.w/2,ty=p.y+p.h/2;
    b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
@@ -230,7 +241,7 @@ function drawSpringBees(){
    g.fillStyle='#57351e';g.beginPath();g.ellipse(0,9,8,10,0,0,Math.PI*2);g.fill();
    g.restore();
  }
- for(const b of springBees){
+ for(const b of [...springBees,...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
    g.save();g.translate(b.x,b.y);
    g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
    g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
@@ -285,6 +296,12 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
  if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+ // Horn hitbox is ready: defeat any worker bee it touches.
+ if(hornHit){
+   for(const b of springBees)if(b.t>0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
+   if(typeof freeBees!=='undefined')for(const b of freeBees)if(b.alive&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.alive=false;score+=150;debris(b.x,b.y,5)}
+ }
+ springBees=springBees.filter(b=>b.t>0);
 
  if(grabbedVine){p.vx=0;p.vy=0;}
  p.x+=p.vx;

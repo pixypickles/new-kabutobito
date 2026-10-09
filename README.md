@@ -115,3 +115,6 @@ v62: Smaller, less crowded side-profile sakura petal platforms in 1-2; 1-3 sap a
 
 
 v63: Spring beehives in World 1-1 through 1-4. Contact triggers three pursuing worker bees; untouched hives remain peaceful. World 1-4 has many hives and an aerial queen bee boss with periodic worker summons and straight diagonal stinger dives. Queen takes five hits; defeating her opens the gate.
+
+
+v64: Removed early beehives near spawn/sap, removed all 1-2 hives and added three floating workers; horn attacks can defeat bees. 1-3 outer trunk boundary clamps the player inside the course.
