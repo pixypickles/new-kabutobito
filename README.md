@@ -133,3 +133,6 @@ v68: Rebuilt 1-4 branch obstacle course based on 1-1, with varied upper/lower de
 
 
 v69: World 1-4 rebuilt with seven collision-solid branch barricades, alternating low/high/middle passageways, climbing ledges and hives guarding each narrow passage. The route can no longer be cleared by simply walking underneath or jumping over every obstacle.
+
+
+v70: World 1-2 adds buffered/coyote jumps and carries the player with descending petals. World 1-4 opens alternate hive-avoidance paths, uses the same butterfly-person sprite as 1-1 through 1-3, and adds eight sap/leaf pickups.

@@ -78,22 +78,29 @@ let blocks=[]; // no castle blocks in spring forest
 // climbing, dropping, and squeezing past hives rather than simply walking below.
 const forestObstacles=[
  // low tunnel: roof branch reaches down from the canopy
- {x:980,y:-300,w:110,h:675},
+ {x:980,y:-300,w:110,h:645},
  // high route: solid upright trunk seals the ground
  {x:1700,y:215,w:115,h:265},
  // middle slot: two solid branches leave only a narrow central opening
- {x:2440,y:-300,w:115,h:465},{x:2440,y:325,w:115,h:155},
+ {x:2440,y:-300,w:115,h:430},{x:2440,y:335,w:115,h:145},
  // low tunnel with a second dangerous hive
- {x:3190,y:-300,w:120,h:665},
+ {x:3190,y:-300,w:120,h:625},
  // high climb, ground completely blocked
  {x:3910,y:200,w:115,h:280},
  // mid-level squeeze
- {x:4680,y:-300,w:115,h:445},{x:4680,y:300,w:115,h:180},
+ {x:4680,y:-300,w:115,h:410},{x:4680,y:320,w:115,h:160},
  // last high branch obstacle before queen
  {x:5320,y:220,w:110,h:260}
 ];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
+// Visible, accessible power-ups throughout the branch course.
+pickups.push(...[
+ {x:600,y:310,type:'sap'},{x:1300,y:280,type:'leaf'},
+ {x:2080,y:290,type:'sap'},{x:2780,y:280,type:'leaf'},
+ {x:3540,y:295,type:'sap'},{x:4300,y:290,type:'leaf'},
+ {x:5030,y:295,type:'sap'},{x:5600,y:355,type:'leaf'}
+].map(u=>({...u,w:30,h:30,vy:0,t:20,got:0})));
 let lifts=[];
 let grasshoppers=[];let flyers=[];
 let switches=[];
@@ -217,24 +224,41 @@ let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,p
 // Every compulsory passage has a visible hive near the safe line,
 // so timing or a horn dash is needed to pass cleanly.
 let springHives=[
- {x:933,y:405,active:false,pulse:0,fallen:false,triggerT:0},
- {x:1640,y:160,active:false,pulse:0,fallen:false,triggerT:0},
- {x:2385,y:245,active:false,pulse:0,fallen:false,triggerT:0},
- {x:3140,y:402,active:false,pulse:0,fallen:false,triggerT:0},
- {x:3850,y:145,active:false,pulse:0,fallen:false,triggerT:0},
- {x:4620,y:220,active:false,pulse:0,fallen:false,triggerT:0},
- {x:5260,y:165,active:false,pulse:0,fallen:false,triggerT:0}
+ {x:925,y:355,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:1660,y:205,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:2375,y:290,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3135,y:352,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3855,y:205,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:4610,y:280,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:5245,y:220,active:false,pulse:0,fallen:false,triggerT:0}
 ];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
 let springButterflies=[{x:650,y:145,phase:0},{x:1440,y:175,phase:2},{x:2040,y:125,phase:4},{x:3050,y:155,phase:1},{x:3830,y:120,phase:3},{x:4730,y:170,phase:5}];
+ function springButterfly(cx,cy,face=1,flap=0,scale=1,kind=0){
+  g.save();g.translate(cx,cy);g.scale(face*scale,scale);
+  let wing=.66+Math.sin(frame*.37+flap)*.31;
+  g.fillStyle=['#f9c6de','#ffe274','#a6dafa','#f7a46d','#f4f0d9'][kind%5];g.strokeStyle=['#b965a3','#c7a44a','#6194bc','#c87955','#9f9c93'][kind%5];g.lineWidth=2.8;
+  for(const side of [-1,1]){
+   g.save();g.scale(side*wing,1);
+   g.beginPath();g.ellipse(18,-11,22,17,-.3,0,7);g.fill();g.stroke();
+   g.fillStyle=['#f6e3a1','#f9bd53','#e7f4ff','#ffe7b8','#e9f0c8'][kind%5];g.beginPath();g.ellipse(16,12,16,14,.4,0,7);g.fill();g.stroke();
+   g.fillStyle='#fff4f8';g.beginPath();g.arc(23,-12,5,0,7);g.fill();g.restore();
+  }
+  g.fillStyle='#a776bb';g.strokeStyle='#68446e';g.lineWidth=2.5;
+  g.beginPath();g.ellipse(0,7,10,18,0,0,7);g.fill();g.stroke();
+  g.beginPath();g.moveTo(-5,19);g.lineTo(-9,28);g.moveTo(5,19);g.lineTo(9,28);g.moveTo(-8,4);g.lineTo(-17,13);g.moveTo(8,4);g.lineTo(17,13);g.stroke();
+  g.fillStyle='#c995ce';g.beginPath();g.arc(0,-15,12,0,7);g.fill();g.stroke();
+  g.strokeStyle='#68446e';g.lineWidth=2;g.beginPath();g.moveTo(-5,-24);g.quadraticCurveTo(-13,-40,-19,-33);g.moveTo(5,-24);g.quadraticCurveTo(13,-40,19,-33);g.stroke();
+  g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
+  g.restore();
+ }
 function drawSpringButterflies(){
- for(const b of springButterflies){let yy=b.y+Math.sin(frame*.055+b.phase)*19;g.save();g.translate(b.x+Math.sin(frame*.015+b.phase)*35,yy);
-  g.fillStyle='#f4a5df';g.strokeStyle='#b96ab1';g.lineWidth=2;
-  g.beginPath();g.ellipse(-11,-4,12,16,-.35,0,7);g.ellipse(11,-4,12,16,.35,0,7);g.fill();g.stroke();
-  g.fillStyle='#9164b5';g.beginPath();g.ellipse(0,1,5,13,0,0,7);g.fill();g.restore();
+ for(let i=0;i<springButterflies.length;i++){
+ const b=springButterflies[i],yy=b.y+Math.sin(frame*.055+b.phase)*19;
+ springButterfly(b.x+Math.sin(frame*.015+b.phase)*35,yy,1,b.phase,.72,i%5);
  }
 }
 let straightBees=[];
