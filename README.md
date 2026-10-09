@@ -175,3 +175,6 @@ v83: All four stag-beetle duel arenas in World 2-4 have continuous solid floors;
 
 
 v84: World 2-4 stag minibosses and final boss visibly rotate 90 degrees for horizontal pincer-first charges. They telegraph by crouching/shaking with an exclamation point, then freeze briefly after charging. Body contact is harmless at all times; only forward pincers during active charges damage the player.
+
+
+v85: World 3-1 autumn forest, built on the 2-1 horizontal forest route. Giant-jumping grasshopper folk, mantis folk launching horizontal scythe slashes that stop on branches, orange/red/yellow autumn foliage, autumn-tinted forest. Horn and stomp can defeat autumn enemies.
