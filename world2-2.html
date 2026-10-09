@@ -47,9 +47,9 @@ const ledges=[{x:1480,y:350,w:170,h:25},{x:2900,y:300,w:170,h:25},{x:4230,y:365,
 // Oversized cherry petals: level landing surfaces, drifting diagonally down.
 // Independently staggered positions and speeds avoid synchronized rows or empty waves.
 const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
-const driftingLeaves=Array.from({length:43},(_,i)=>({
- x:480+petalRand(i,1)*5060,y:-260+petalRand(i,2)*810,
- w:94,h:17,vx:-.55-petalRand(i,3)*.38,vy:.48+petalRand(i,4)*.32,
+const driftingLeaves=Array.from({length:34},(_,i)=>({
+ x:530+((i*173+petalRand(i,1)*92)%4930),y:-360+((i*197+petalRand(i,2)*53)%940),
+ w:94,h:17,vx:i%5===0?-1.25-petalRand(i,3)*.4:-.55-petalRand(i,3)*.38,vy:i%5===0?0:.48+petalRand(i,4)*.32,
  drift:true,seed:i
 }));
 ledges.push(...driftingLeaves);
@@ -65,7 +65,7 @@ let ants=[{x:520,y:450,v:-1.15,alive:1,flat:0},{x:3460,y:425,v:-1.1,alive:1,flat
 let snails=[{x:2660,y:432,v:-.75,alive:1,shell:0,shellV:0}];
 let pickups=[],particles=[],thrownStags=[];let springPollen=[];
 // A large green selector berry: horn strikes cycle red -> blue -> yellow.
-let elementalBerries=[{x:750,y:335,w:43,h:43,choice:-1,got:false,hitLock:0}];
+let elementalBerries=[{x:270,y:415,w:43,h:43,choice:-1,got:false,hitLock:0}];
 let pollenStun=0;
 let summerCicadas=Array.from({length:10},(_,i)=>({
  x:850+i*610,y:155+(i%3)*65,baseY:155+(i%3)*65,
@@ -118,8 +118,6 @@ function drawSummerCicadas(){
  }
 }
 
-
-// Hanging vines: hold UP near a vine to grab, UP/DOWN to climb, jump to release.
 const hangingVines=[];
 let grabbedVine=null, vineJumpLock=0;
 
@@ -313,12 +311,13 @@ function update(){updateSpringBees();updateSummerCicadas();
  l.x+=l.vx;l.y+=l.vy;
  if(wasOnPetal&&!dead){p.x+=l.vx;p.y+=l.vy;p.on=true;}
  // Recycle only after the leaf has dropped well below the playable view.
- if(l.y>650){
+ if(l.y>650||(l.vy===0&&l.x<cam-320)){
    // Restart each petal independently above the visible region, near the player's route.
    l.y=-90-petalRand(frame+i*37,2)*440;
    l.x=Math.max(480,Math.min(5480,cam-140+petalRand(frame+i*53,1)*1380));
-   l.vx=-.55-petalRand(frame+i*29,3)*.38;
-   l.vy=.48+petalRand(frame+i*31,4)*.32;
+   l.vx=i%5===0?-1.25-petalRand(frame+i*29,3)*.4:-.55-petalRand(frame+i*29,3)*.38;
+   l.vy=i%5===0?0:.48+petalRand(frame+i*31,4)*.32;
+   if(i%5===0){l.x=cam+1000+petalRand(frame+i*53,1)*350;l.y=100+petalRand(frame+i*37,2)*300;}
   }
 }
 /*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
@@ -540,7 +539,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
      if(f.retreatT>90)f.mode='watch';
    }
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
-     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     if((p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66)||(p.on&&f.y>=p.y+p.h*.40)){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
      else if(f.mode==='charge')hurt();
    }
  }
@@ -549,7 +548,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    if(f.thrown){f.x+=f.throwVx;f.y+=f.throwVy;f.throwVy+=.48;if(--f.safeT<=0||f.y>650)f.alive=0;continue;}
    f.x+=f.v;if(f.x<f.minX||f.x>f.maxX)f.v*=-1;
    if(!f.safeT&&R({x:p.x+7,y:p.y+8,w:p.w-14,h:p.h-10},{x:f.x+5,y:f.y+8,w:f.w-10,h:f.h-10})&&!scoopProtected(f)){
-     if(p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
+     if((p.vy>1.2&&p.y+p.h-12<=f.y+f.h*.66)||(p.on&&f.y>=p.y+p.h*.40)){f.alive=0;p.vy=-15.5;p.on=false;score+=300;debris(f.x,f.y,9)}
      else hurt();
    }
  }
@@ -632,7 +631,7 @@ function drawBranch(q,small=false){
 }
 function giantLeaf(x,y,rx,ry,rot){
  g.save();g.translate(x,y);g.rotate(rot);
- g.fillStyle='#f58dbb';g.strokeStyle='#398044';g.lineWidth=3;
+ g.fillStyle='#f58dbb';g.strokeStyle='#397d42';g.lineWidth=3;
  g.beginPath();g.moveTo(-rx,0);
  g.bezierCurveTo(-rx*.87,-ry*1.45,-rx*.27,-ry*1.7,0,-ry*.85);
  g.bezierCurveTo(rx*.3,-ry*1.7,rx*.88,-ry*1.45,rx,0);
@@ -664,7 +663,7 @@ function draw(){
    for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
  for(let q of grounds)drawBranch(q,false);
- for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#84c957';g.strokeStyle='#3e813d';g.lineWidth=3;
+ for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#7ecf60';g.strokeStyle='#37814b';g.lineWidth=3;
  // Side profile: rounded base at left, single narrow tip at right with a tiny notch.
  g.beginPath();g.moveTo(-l.w*.47,1);
  g.bezierCurveTo(-l.w*.46,-13,-l.w*.19,-18,l.w*.08,-14);
@@ -673,7 +672,7 @@ function draw(){
  g.bezierCurveTo(l.w*.23,15,-l.w*.16,17,-l.w*.39,9);
  g.quadraticCurveTo(-l.w*.49,6,-l.w*.47,1);
  g.closePath();g.fill();g.stroke();
- g.strokeStyle='#c8f2a2';g.lineWidth=2;g.beginPath();
+ g.strokeStyle='#ffe5f1';g.lineWidth=2;g.beginPath();
  g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1,l.w*.36,0);g.stroke();
  g.restore()}else drawBranch(l,true);}
  drawSummerCanopy();
