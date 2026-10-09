@@ -220,6 +220,26 @@ function updateSpringBees(){
  }
  springBees=springBees.filter(b=>b.t>0);
 }
+
+function drawWorkerBee(b){
+ g.save();g.translate(b.x,b.y);
+ const facing=(b.vx||0)<0?-1:1;g.scale(facing,1);
+ g.fillStyle='#e9f9ffcc';g.strokeStyle='#9dbcc9';g.lineWidth=1.5;
+ g.beginPath();g.ellipse(-10,-10,9,6,-.4,0,Math.PI*2);g.ellipse(10,-10,9,6,.4,0,Math.PI*2);g.fill();g.stroke();
+ // Human-like head, striped upright torso, arms and legs.
+ g.fillStyle='#ffe5a3';g.strokeStyle='#674628';g.lineWidth=2;
+ g.beginPath();g.arc(0,-15,8,0,Math.PI*2);g.fill();g.stroke();
+ g.fillStyle='#f7cb46';g.beginPath();g.ellipse(0,3,9,13,0,0,Math.PI*2);g.fill();g.stroke();
+ g.strokeStyle='#563a24';g.lineWidth=3;g.beginPath();g.moveTo(-8,-2);g.lineTo(8,-2);g.moveTo(-8,6);g.lineTo(8,6);g.stroke();
+ g.strokeStyle='#694523';g.lineWidth=2.8;g.beginPath();
+ g.moveTo(-7,0);g.lineTo(-15,9);g.moveTo(7,0);g.lineTo(16,-6);
+ g.moveTo(-4,14);g.lineTo(-7,22);g.moveTo(4,14);g.lineTo(8,22);g.stroke();
+ // Spear held by the right arm.
+ g.strokeStyle='#80684d';g.lineWidth=2;g.beginPath();g.moveTo(16,10);g.lineTo(16,-25);g.stroke();
+ g.fillStyle='#aabdc3';g.beginPath();g.moveTo(16,-31);g.lineTo(11,-22);g.lineTo(21,-22);g.closePath();g.fill();
+ g.fillStyle='#322720';g.beginPath();g.arc(-3,-16,1.5,0,7);g.arc(3,-16,1.5,0,7);g.fill();
+ g.restore();
+}
 function drawSpringBees(){
  for(const h of springHives){
    g.save();g.translate(h.x,h.y);
@@ -231,13 +251,7 @@ function drawSpringBees(){
    g.restore();
  }
  for(const b of [...springBees.filter(b=>b.delay<=0&&b.t>0),...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
-   g.save();g.translate(b.x,b.y);
-   g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
-   g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
-   g.fillStyle='#ffd451';g.strokeStyle='#674323';g.lineWidth=2;g.beginPath();g.ellipse(0,0,12,9,0,0,Math.PI*2);g.fill();g.stroke();
-   g.fillStyle='#56341b';g.fillRect(-4,-8,3,16);g.fillRect(3,-8,3,16);
-   g.beginPath();g.moveTo(-12,0);g.lineTo(-19,4);g.lineTo(-12,6);g.fill();
-   g.restore();
+   drawWorkerBee(b);
  }
 }
 function update(){updateSpringBees();

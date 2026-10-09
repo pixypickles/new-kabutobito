@@ -365,8 +365,8 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  if(grabbedVine){p.vx=0;p.vy=0;}
  p.x+=p.vx;
  // Outer bark is an impassable world boundary even during horn dash / wall jump.
- if(p.x<68){p.x=68;p.vx=Math.max(0,p.vx);p.wallGrab=false}
- if(p.x+p.w>1132){p.x=1132-p.w;p.vx=Math.min(0,p.vx);p.wallGrab=false}
+ if(p.x<68){p.x=68;p.vx=Math.max(0,p.vx);if(!p.on&&!p.wallLock&&L){p.wallGrab=true;p.wallDir=-1;p.vy=0}}
+ if(p.x+p.w>1132){p.x=1132-p.w;p.vx=Math.min(0,p.vx);if(!p.on&&!p.wallLock&&Rt){p.wallGrab=true;p.wallDir=1;p.vy=0}}
 
  for(let s of solids())if(!ledges.includes(s)&&R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
  let oy=p.y;p.y+=p.vy;p.on=false;

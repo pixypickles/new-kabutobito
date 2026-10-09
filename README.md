@@ -148,3 +148,6 @@ v73: Shared anthropomorphic spear-carrying worker-bee sprite across 1-1 to 1-4; 
 
 
 v74: Queen bee in 1-4 now fires aimed stinger projectiles from her abdomen while remaining harmless on body contact. World 2-1 built anew on the World 1-1 horizontal forest framework: summer green canopy, sunflowers, cicadas, anthropomorphic dragonflies, no spring pollen, and one early elemental selector berry.
+
+
+v75: 1-3 boundary clamps preserve wall-grabbing. Summer 2-1 dragonflies no longer flutter or drop pollen; they detect nearby player and charge in a straight line with contact damage, while horn reach remains unchanged. Summer cicadas perch, take off when approached, drop three falling droplets, and escape.
