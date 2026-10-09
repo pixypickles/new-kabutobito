@@ -130,3 +130,6 @@ v67: brighter fine pollen in all three spring stages. World 1-4: no castle block
 
 
 v68: Rebuilt 1-4 branch obstacle course based on 1-1, with varied upper/lower detours and narrow routes. Removed surprise straight-line bees. Hives in 1-1, 1-3 and 1-4 fall to horn dash and release five delayed bees from below; ordinary touch releases three after a warning. 1-2 deliberately remains hive-free.
+
+
+v69: World 1-4 rebuilt with seven collision-solid branch barricades, alternating low/high/middle passageways, climbing ledges and hives guarding each narrow passage. The route can no longer be cleared by simply walking underneath or jumping over every obstacle.

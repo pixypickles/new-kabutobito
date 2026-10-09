@@ -64,16 +64,33 @@ const ledges=[
  {x:5110,y:295,w:185,h:20,oneway:1},{x:5360,y:360,w:185,h:20,oneway:1},
  {x:5620,y:420,w:180,h:20,oneway:1}
  ];
+ledges.push(
+ {x:1430,y:365,w:155,h:20,oneway:1},{x:1580,y:285,w:150,h:20,oneway:1},
+ {x:2050,y:335,w:155,h:20,oneway:1},{x:2270,y:260,w:165,h:20,oneway:1},
+ {x:3560,y:350,w:160,h:20,oneway:1},{x:3750,y:270,w:150,h:20,oneway:1},
+ {x:4300,y:345,w:155,h:20,oneway:1},{x:4530,y:265,w:150,h:20,oneway:1},
+ {x:5010,y:350,w:160,h:20,oneway:1},{x:5200,y:265,w:160,h:20,oneway:1}
+);
 let blocks=[]; // no castle blocks in spring forest
 // Forest obstacle trunks: weave over, under, or through narrow gaps.
 // Impassable trunk sections shape up/down detours and tight passages.
+// Solid, full-route branch barricades. Alternating narrow openings require
+// climbing, dropping, and squeezing past hives rather than simply walking below.
 const forestObstacles=[
- {x:1050,y:0,w:95,h:245},     // low passage below
- {x:1800,y:405,w:95,h:75},    // climb over
- {x:2760,y:0,w:100,h:245},    // duck below
- {x:3640,y:355,w:95,h:125},   // climb over
- {x:4590,y:0,w:100,h:285},    // narrow lower route
- {x:5350,y:390,w:95,h:90}     // climb over
+ // low tunnel: roof branch reaches down from the canopy
+ {x:980,y:-300,w:110,h:675},
+ // high route: solid upright trunk seals the ground
+ {x:1700,y:215,w:115,h:265},
+ // middle slot: two solid branches leave only a narrow central opening
+ {x:2440,y:-300,w:115,h:465},{x:2440,y:325,w:115,h:155},
+ // low tunnel with a second dangerous hive
+ {x:3190,y:-300,w:120,h:665},
+ // high climb, ground completely blocked
+ {x:3910,y:200,w:115,h:280},
+ // mid-level squeeze
+ {x:4680,y:-300,w:115,h:445},{x:4680,y:300,w:115,h:180},
+ // last high branch obstacle before queen
+ {x:5320,y:220,w:110,h:260}
 ];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
@@ -197,15 +214,16 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
+// Every compulsory passage has a visible hive near the safe line,
+// so timing or a horn dash is needed to pass cleanly.
 let springHives=[
- {x:770,y:305,active:false,pulse:0,fallen:false,triggerT:0},
- {x:1250,y:275,active:false,pulse:0,fallen:false,triggerT:0},
- {x:2190,y:315,active:false,pulse:0,fallen:false,triggerT:0},
- {x:2600,y:220,active:false,pulse:0,fallen:false,triggerT:0},
- {x:3340,y:375,active:false,pulse:0,fallen:false,triggerT:0},
- {x:3980,y:205,active:false,pulse:0,fallen:false,triggerT:0},
- {x:4490,y:325,active:false,pulse:0,fallen:false,triggerT:0},
- {x:5150,y:245,active:false,pulse:0,fallen:false,triggerT:0}
+ {x:933,y:405,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:1640,y:160,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:2385,y:245,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3140,y:402,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:3850,y:145,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:4620,y:220,active:false,pulse:0,fallen:false,triggerT:0},
+ {x:5260,y:165,active:false,pulse:0,fallen:false,triggerT:0}
 ];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
@@ -906,6 +924,10 @@ function draw(){
  for(const t of forestObstacles){
  g.fillStyle='#805033';g.strokeStyle='#4d2e1d';g.lineWidth=5;g.fillRect(t.x,t.y,t.w,t.h);g.strokeRect(t.x,t.y,t.w,t.h);
  g.strokeStyle='#b78052';g.lineWidth=3;g.beginPath();g.moveTo(t.x+t.w*.35,t.y+8);g.lineTo(t.x+t.w*.35,t.y+t.h-8);g.stroke();
+ for(let yy=Math.max(22,t.y+35);yy<Math.min(470,t.y+t.h-20);yy+=82){
+   g.strokeStyle='#69402c';g.lineWidth=13;g.beginPath();g.moveTo(t.x+t.w*.5,yy+28);g.lineTo(t.x+t.w+35,yy-20);g.stroke();
+   g.fillStyle='#8dce5b';g.beginPath();g.ellipse(t.x+t.w+31,yy-23,31,12,-.35,0,Math.PI*2);g.fill();
+ }
 }
 drawSpringBees();drawStraightBees();drawSpringButterflies(); // bees in front of forest
  g.restore();
