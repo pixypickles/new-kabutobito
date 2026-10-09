@@ -136,3 +136,6 @@ v69: World 1-4 rebuilt with seven collision-solid branch barricades, alternating
 
 
 v70: World 1-2 adds buffered/coyote jumps and carries the player with descending petals. World 1-4 opens alternate hive-avoidance paths, uses the same butterfly-person sprite as 1-1 through 1-3, and adds eight sap/leaf pickups.
+
+
+v71: World 1-4 alternating low/high solid branches with tight detours; sap droplets grow from bark instead of bottles; queen movement smoothed and stinger-only contact hitbox; humanoid spear/stinger bees; spring butterflies shed sparkling pollen with electrical stun effect.
