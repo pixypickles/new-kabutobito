@@ -626,6 +626,18 @@ if(keys.punch&&!hornBHeld){
  }
  for(let sh of bossShots){
    sh.x+=sh.vx;sh.y+=sh.vy;if(!sh.stinger)sh.vy+=.30;sh.t--;
+   // Stingers are stopped by bark: sweep the entire travel segment to avoid tunneling.
+   if(sh.stinger){
+     const obstacles=grounds.concat(forestObstacles,ledges);
+     for(let k=0;k<=6&&sh.t>0;k++){
+       const tx=sh.x-sh.vx*k/6,ty=sh.y-sh.vy*k/6;
+       if(obstacles.some(o=>R({x:tx-sh.r,y:ty-sh.r,w:sh.r*2,h:sh.r*2},o))){
+         sh.t=0;break;
+       }
+     }
+   }
+   if(sh.t<=0)continue;
+
    if(R(p,{x:sh.x-sh.r,y:sh.y-sh.r,w:sh.r*2,h:sh.r*2})&&p.hornT<=0){hurt();sh.t=0}
    if(sh.y>GROUND+35)sh.t=0;
  }

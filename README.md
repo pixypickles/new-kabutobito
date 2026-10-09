@@ -160,3 +160,6 @@ v77: Redesigned summer dragonfly wings: four anatomically grouped, distinct tape
 
 
 v79: Color berries moved to starting ground; dispersed falling platforms with some horizontal right-to-left platforms; summer 2-2 green leaves, dragonflies and cicadas. Improved stomps against enemies coming from below.
+
+
+v80: Queen stinger projectiles are stopped by tree trunks, obstacles and branches. World 2-3 is a summer vertical climbing course using 1-3's wall-climb layout, with summer canopy, sunflowers, flying metallic-green beetles (kanabun), and stag-beetle enemies on branches.
