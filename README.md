@@ -172,3 +172,6 @@ v82: World 2-4 rebuilt from the summer World 2-1 forest: three mandatory one-on-
 
 
 v83: All four stag-beetle duel arenas in World 2-4 have continuous solid floors; no gaps inside the locked battles.
+
+
+v84: World 2-4 stag minibosses and final boss visibly rotate 90 degrees for horizontal pincer-first charges. They telegraph by crouching/shaking with an exclamation point, then freeze briefly after charging. Body contact is harmless at all times; only forward pincers during active charges damage the player.
