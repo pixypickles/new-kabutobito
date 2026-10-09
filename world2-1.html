@@ -100,6 +100,18 @@ function updateSummerCicadas(){
  }
  cicadaDrops=cicadaDrops.filter(q=>q.t>0&&q.y<GROUND+30);
 }
+function hitSummerCicadas(){
+ for(const c of summerCicadas){
+   if(c.state==='gone')continue;
+   const r={x:c.x-18,y:c.y-19,w:36,h:38};
+   if(hornHit&&R(hornHit,r)){
+     c.state='gone';score+=250;debris(c.x,c.y,9);continue;
+   }
+   if(p.vy>1&&R(p,r)&&p.y+p.h<=c.y+5){
+     c.state='gone';p.vy=-14.5;p.on=false;score+=250;debris(c.x,c.y,9);
+   }
+ }
+}
 function drawSummerCicadas(){
  for(const c of summerCicadas)if(c.state!=='gone'){
    g.save();g.translate(c.x,c.y);
@@ -364,6 +376,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
      notice='ハチの巣が落ちた！';noticeT=85;score+=200;
    }
  }
+ hitSummerCicadas();
  if(hornHit){
    for(const b of springBees)if(b.t>0&&b.delay<=0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
    if(typeof freeBees!=='undefined')for(const b of freeBees)if(b.alive&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.alive=false;score+=150;debris(b.x,b.y,5)}
@@ -725,7 +738,7 @@ function draw(){
   g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
  }
  
- for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,(f.mode==='charge'?(f.chargeVx>0?-1:1):(f.vx>0?-1:1)),f.x*.01,.72,f.kind||0);
+ for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,(f.mode==='charge'?(f.chargeVx>0?-1:1):(f.vx>0?-1:1)),f.x*.01,.62,f.kind||0);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // Falling scale powder, drawn as visible lavender sparkle clusters.

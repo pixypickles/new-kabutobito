@@ -157,3 +157,6 @@ v76: World 1-4 butterflies and queen bee can now be stomped from above, with bou
 
 
 v77: Redesigned summer dragonfly wings: four anatomically grouped, distinct tapered wings, two on each side of the thorax with separated roots, no intersecting ellipse propeller shapes.
+
+
+v78: Cicadas are horn-defeatable and stompable in summer stages. 2-2 has drifting green leaf platforms, charging dragonflies and bark-resting cicadas. Dragonfly sprite reduced slightly.
