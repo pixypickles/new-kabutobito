@@ -151,3 +151,6 @@ v74: Queen bee in 1-4 now fires aimed stinger projectiles from her abdomen while
 
 
 v75: 1-3 boundary clamps preserve wall-grabbing. Summer 2-1 dragonflies no longer flutter or drop pollen; they detect nearby player and charge in a straight line with contact damage, while horn reach remains unchanged. Summer cicadas perch, take off when approached, drop three falling droplets, and escape.
+
+
+v76: World 1-4 butterflies and queen bee can now be stomped from above, with bounce and defeat; queen remains harmless on ordinary body contact. World 2-1 dragonflies redrawn in side profile with elongated horizontal body, visible large side eye, legs, and four paired symmetrical wings.

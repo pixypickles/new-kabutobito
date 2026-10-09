@@ -448,6 +448,15 @@ if(keys.punch&&!hornBHeld){
  if(hornHit)for(const sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){
    sp.hit=1;sp.sap=1;score+=150;notice='樹皮を削った！ 樹液が出た！';noticeT=80;debris(sp.x,sp.y,6);
  }
+ // All butterfly folk can be stomped from above, not just struck by the horn.
+ for(const b of springButterflies)if(b.alive){
+   const bx=b.x+Math.sin(frame*.015+b.phase)*35;
+   const by=b.y+Math.sin(frame*.055+b.phase)*19;
+   if(p.vy>1.1&&R(p,{x:bx-22,y:by-28,w:44,h:48})&&
+      p.y+p.h<=by+8){
+     b.alive=false;p.vy=-14.5;p.on=false;score+=300;debris(bx,by,9);
+   }
+ }
  if(hornHit)for(const b of springButterflies)if(b.alive!==false){
    let bx=b.x+Math.sin(frame*.015+b.phase)*35,by=b.y+Math.sin(frame*.055+b.phase)*19;
    if(R(hornHit,{x:bx-27,y:by-37,w:54,h:65})){b.alive=false;score+=300;debris(bx,by,10)}
@@ -601,6 +610,14 @@ if(keys.punch&&!hornBHeld){
    }
 
    let body={x:boss.x+8,y:boss.y,w:boss.w-16,h:boss.h-5};
+   // Queen is safe to touch from the sides/below, but can be stomped.
+   if(boss.hitCd===0&&p.vy>1.1&&R(p,body)&&p.y+p.h<=boss.y+boss.h*.48){
+     boss.blueHP--;boss.hitCd=45;p.vy=-16;p.on=false;score+=350;
+     debris(boss.x+boss.w/2,boss.y,12);
+     notice='女王蜂を踏んだ！ あと '+boss.blueHP+'発';noticeT=70;
+     if(boss.blueHP<=0){boss.alive=0;springBees=[];gate.open=1;score+=3000;notice='女王蜂を倒した！';noticeT=130}
+   }
+
    if(boss.hitCd===0&&((hornHit&&R(hornHit,body))||(punch&&R(punch,body)))){
      boss.blueHP--;boss.hitCd=45;debris(boss.x,boss.y,12);score+=350;
      notice='女王蜂にヒット！ あと '+boss.blueHP+'発';noticeT=70;

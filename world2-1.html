@@ -669,18 +669,30 @@ function draw(){
 
  // Spring enemies: butterfly folk, with petal wings and antennae.
  function springButterfly(cx,cy,face=1,flap=0,scale=1,kind=0){
-   // Summer dragonfly person (red, blue and green varieties).
-   let colors=['#ed6540','#318fce','#7dbd4d','#e2a84a','#7f83ce'];
-   g.save();g.translate(cx,cy);g.scale(scale*face,scale);
-   g.fillStyle='#d8f8f4aa';g.strokeStyle='#6aadb0';g.lineWidth=2;
-   for(let k of [-1,1])for(let q of [-1,1]){
-     g.beginPath();g.ellipse(k*19,q*8,23,6,q*.32,0,7);g.fill();g.stroke();
+   // Side-profile dragonfly: face on the left, long horizontal abdomen,
+   // two near-side wings and two far-side wings, mirrored about the body.
+   const colors=['#e65f3d','#328ccc','#7aaf47','#dba542','#877bd1'];
+   g.save();g.translate(cx,cy);g.scale(scale*(face<0?-1:1),scale);
+   g.strokeStyle='#43545a';g.lineWidth=2.3;
+   // Four elongated wings are paired symmetrically above/below the abdomen.
+   for(const side of [-1,1]){
+     g.fillStyle='#d6f8f5b8';g.beginPath();
+     g.ellipse(4,side*20,31,8,side*.62,0,Math.PI*2);g.fill();g.stroke();
+     g.fillStyle='#e5ffff99';g.beginPath();
+     g.ellipse(21,side*17,29,7,-side*.48,0,Math.PI*2);g.fill();g.stroke();
    }
-   g.fillStyle=colors[kind%colors.length];g.strokeStyle='#4b493e';g.lineWidth=2;
-   g.beginPath();g.ellipse(0,13,7,24,0,0,7);g.fill();g.stroke();
-   g.fillStyle='#e8c99e';g.beginPath();g.arc(0,-14,11,0,7);g.fill();g.stroke();
-   g.strokeStyle='#4b493e';g.lineWidth=2;g.beginPath();g.moveTo(-5,0);g.lineTo(-14,14);g.moveTo(5,0);g.lineTo(14,14);g.stroke();
-   g.fillStyle='#333';g.beginPath();g.arc(-4,-16,2,0,7);g.arc(4,-16,2,0,7);g.fill();
+   // Long segmented abdomen trails behind the head to the right.
+   g.fillStyle=colors[kind%colors.length];
+   g.beginPath();g.ellipse(28,5,39,10,0,0,Math.PI*2);g.fill();g.stroke();
+   g.strokeStyle='#4c4b42';g.lineWidth=1.7;
+   for(let x=5;x<59;x+=12){g.beginPath();g.moveTo(x,-3);g.lineTo(x,13);g.stroke()}
+   // Thorax, small legs and side-facing head with prominent eye.
+   g.fillStyle=colors[kind%colors.length];g.strokeStyle='#43545a';g.lineWidth=2.4;
+   g.beginPath();g.ellipse(-6,2,18,16,0,0,Math.PI*2);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-11,13);g.lineTo(-19,25);g.moveTo(-1,14);g.lineTo(-5,29);g.moveTo(10,13);g.lineTo(15,25);g.stroke();
+   g.fillStyle='#f6d5a9';g.beginPath();g.ellipse(-26,-8,17,19,-.2,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#2d3335';g.beginPath();g.arc(-33,-12,5,0,Math.PI*2);g.fill();
+   g.strokeStyle='#52483d';g.lineWidth=2;g.beginPath();g.moveTo(-39,-1);g.lineTo(-48,2);g.stroke();
    g.restore();
  }
  function springLadybug(cx,cy,face=1){
@@ -699,7 +711,7 @@ function draw(){
   g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
  }
  
- for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72,f.kind||0);
+ for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,(f.mode==='charge'?(f.chargeVx>0?-1:1):(f.vx>0?-1:1)),f.x*.01,.72,f.kind||0);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // Falling scale powder, drawn as visible lavender sparkle clusters.
