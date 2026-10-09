@@ -142,3 +142,9 @@ v71: World 1-4 alternating low/high solid branches with tight detours; sap dropl
 
 
 v72: 1-4 butterflies can be defeated with horn attacks and stop producing pollen once defeated. 1-4 sap now appears by horn-scraping bark on solid trunks, matching 1-1/1-3. 1-1 and 1-3 hive dash detection moved after the horn hitbox is computed, with falling hive and staggered five-bee response.
+
+
+v73: Shared anthropomorphic spear-carrying worker-bee sprite across 1-1 to 1-4; 1-4 bark scars repositioned and rendered in front of trunks; queen stinger removed, queen now wanders smoothly toward randomized aerial waypoints and attacks only by periodically summoning one worker bee.
+
+
+v74: Queen bee in 1-4 now fires aimed stinger projectiles from her abdomen while remaining harmless on body contact. World 2-1 built anew on the World 1-1 horizontal forest framework: summer green canopy, sunflowers, cicadas, anthropomorphic dragonflies, no spring pollen, and one early elemental selector berry.
