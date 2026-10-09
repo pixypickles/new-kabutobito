@@ -163,3 +163,6 @@ v79: Color berries moved to starting ground; dispersed falling platforms with so
 
 
 v80: Queen stinger projectiles are stopped by tree trunks, obstacles and branches. World 2-3 is a summer vertical climbing course using 1-3's wall-climb layout, with summer canopy, sunflowers, flying metallic-green beetles (kanabun), and stag-beetle enemies on branches.
+
+
+v81: World 2-3 stag beetles walk back and forth on their branches and cannot be stomped because of their upward mandibles; horn attacks still defeat them. Flying kanabun spot the player and charge directly, dealing contact damage during the charge.
