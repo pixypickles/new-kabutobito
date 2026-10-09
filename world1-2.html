@@ -187,11 +187,12 @@ let springHives=[];
 let springBees=[];
 let freeBees=[{x:1020,y:120,baseY:120,phase:0,alive:true},{x:2500,y:155,baseY:155,phase:2,alive:true},{x:3880,y:105,baseY:105,phase:4,alive:true}];
 function spawnSpringBees(x,y,count=3){
- for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1});
+ for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
 function updateSpringBees(){
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
+   if(b.delay>0)continue;
    if(beeHit&&R(beeHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5);}
  }
  if(typeof freeBees!=='undefined')for(const b of freeBees){
@@ -209,6 +210,7 @@ function updateSpringBees(){
  }
  for(const b of springBees){
    if(b.t<=0)continue;
+   if(b.delay>0){b.delay--;continue;}
    b.phase+=.22;
    let tx=p.x+p.w/2,ty=p.y+p.h/2;
    b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
@@ -228,7 +230,7 @@ function drawSpringBees(){
    g.fillStyle='#57351e';g.beginPath();g.ellipse(0,9,8,10,0,0,Math.PI*2);g.fill();
    g.restore();
  }
- for(const b of [...springBees,...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
+ for(const b of [...springBees.filter(b=>b.delay<=0&&b.t>0),...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
    g.save();g.translate(b.x,b.y);
    g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
    g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
@@ -297,7 +299,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
  // Horn hitbox is ready: defeat any worker bee it touches.
  if(hornHit){
-   for(const b of springBees)if(b.t>0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
+   for(const b of springBees)if(b.t>0&&b.delay<=0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
    if(typeof freeBees!=='undefined')for(const b of freeBees)if(b.alive&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.alive=false;score+=150;debris(b.x,b.y,5)}
  }
  springBees=springBees.filter(b=>b.t>0);
@@ -558,7 +560,7 @@ function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y-camY);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y-camY,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y-camY+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y-camY+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
  drawForestBackdrop();drawSpringFlowers();
- g.save();g.translate(-cam,-camY);drawSpringBees();
+ g.save();g.translate(-cam,-camY);
  // enormous foreground trunks establish the tiny-person scale
  for(const t of []){g.fillStyle='#68452f';g.strokeStyle='#493222';g.lineWidth=6;g.beginPath();g.moveTo(t.x,560);g.bezierCurveTo(t.x-35,360,t.x+35,160,t.x+10,-160);g.lineTo(t.x+t.w,-160);g.bezierCurveTo(t.x+t.w-30,160,t.x+t.w+35,360,t.x+t.w,560);g.closePath();g.fill();g.stroke();g.strokeStyle='#8e6340';g.lineWidth=5;for(let yy=-80;yy<520;yy+=85){g.beginPath();g.moveTo(t.x+35,yy);g.quadraticCurveTo(t.x+t.w*.5,yy+18,t.x+t.w-30,yy+3);g.stroke()}}
  // Each climbable vine is rooted in a woody overhead branch connected to a tree trunk.
@@ -807,6 +809,7 @@ function draw(){
    g.restore();
    }
  }
+ drawSpringBees(); // foreground layer: bees never disappear behind tree trunks
  g.restore();
 
  g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-1',720,30);

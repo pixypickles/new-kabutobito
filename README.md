@@ -118,3 +118,6 @@ v63: Spring beehives in World 1-1 through 1-4. Contact triggers three pursuing w
 
 
 v64: Removed early beehives near spawn/sap, removed all 1-2 hives and added three floating workers; horn attacks can defeat bees. 1-3 outer trunk boundary clamps the player inside the course.
+
+
+v65: Hive workers emerge one by one at 22-frame intervals, and bees are rendered in the foreground over tree trunks. Pending workers cannot be hit before they appear.

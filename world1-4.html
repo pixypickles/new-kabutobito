@@ -195,11 +195,12 @@ let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,p
 let springHives=[{'x': 1030, 'y': 245, 'active': false, 'pulse': 0}, {'x': 1510, 'y': 330, 'active': false, 'pulse': 0}, {'x': 2090, 'y': 230, 'active': false, 'pulse': 0}, {'x': 2750, 'y': 320, 'active': false, 'pulse': 0}, {'x': 3410, 'y': 220, 'active': false, 'pulse': 0}, {'x': 4050, 'y': 320, 'active': false, 'pulse': 0}, {'x': 4760, 'y': 235, 'active': false, 'pulse': 0}, {'x': 5290, 'y': 280, 'active': false, 'pulse': 0}];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
- for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1});
+ for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
 function updateSpringBees(){
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
+   if(b.delay>0)continue;
    if(beeHit&&R(beeHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5);}
  }
  if(typeof freeBees!=='undefined')for(const b of freeBees){
@@ -217,6 +218,7 @@ function updateSpringBees(){
  }
  for(const b of springBees){
    if(b.t<=0)continue;
+   if(b.delay>0){b.delay--;continue;}
    b.phase+=.22;
    let tx=p.x+p.w/2,ty=p.y+p.h/2;
    b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
@@ -236,7 +238,7 @@ function drawSpringBees(){
    g.fillStyle='#57351e';g.beginPath();g.ellipse(0,9,8,10,0,0,Math.PI*2);g.fill();
    g.restore();
  }
- for(const b of [...springBees,...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
+ for(const b of [...springBees.filter(b=>b.delay<=0&&b.t>0),...(typeof freeBees!=='undefined'?freeBees.filter(b=>b.alive):[])]) {
    g.save();g.translate(b.x,b.y);
    g.fillStyle='#ffffffc9';g.strokeStyle='#a9d1d3';g.lineWidth=1.4;
    g.beginPath();g.ellipse(-7,-9,8,6,-.45,0,Math.PI*2);g.ellipse(7,-9,8,6,.45,0,Math.PI*2);g.fill();g.stroke();
@@ -554,7 +556,7 @@ function draw(){
  for(let x=190;x<W;x+=310){g.fillRect(x,0,12,H);g.fillRect(x-60,180,132,10)}
  for(let x=120;x<W;x+=290){g.fillStyle='#678c67';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
  drawSpringFlowers();
- g.save();g.translate(-cam,0);drawSpringBees();
+ g.save();g.translate(-cam,0);
  drawSpringBlossoms();
 
  for(let q of grounds){
@@ -872,6 +874,7 @@ function draw(){
    g.restore();
    }
  }
+ drawSpringBees(); // foreground layer: bees never disappear behind tree trunks
  g.restore();
 
  g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-4',720,30);
