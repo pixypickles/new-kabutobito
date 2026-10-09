@@ -50,6 +50,7 @@ const grounds=[
  {x:4960,y:GROUND,w:1440,h:60}
 ];
 const ledges=[
+ {x:1370,y:294,w:170,h:22,oneway:1},{x:1550,y:240,w:145,h:22,oneway:1},{x:2350,y:320,w:145,h:22,oneway:1},{x:2550,y:298,w:140,h:22,oneway:1},{x:3310,y:280,w:165,h:22,oneway:1},{x:3500,y:230,w:150,h:22,oneway:1},{x:4130,y:335,w:145,h:22,oneway:1},{x:4380,y:320,w:150,h:22,oneway:1},
  {x:530,y:366,w:155,h:22,oneway:1},{x:740,y:294,w:145,h:22,oneway:1},
  {x:1110,y:340,w:165,h:22,oneway:1},{x:1490,y:295,w:145,h:22,oneway:1},
  {x:1930,y:350,w:160,h:22,oneway:1},{x:2280,y:265,w:155,h:22,oneway:1},
@@ -59,7 +60,13 @@ const ledges=[
  {x:5220,y:320,w:145,h:22,oneway:1},{x:5650,y:350,w:145,h:22,oneway:1},
  {x:5950,y:275,w:145,h:22,oneway:1}
 ];
-let blocks=[{x:1120,y:240,type:'sap'},{x:2860,y:245,type:'leaf'},{x:4500,y:245,type:'leaf'}];
+let blocks=[]; // no castle blocks in spring forest
+// Forest obstacle trunks: weave over, under, or through narrow gaps.
+const forestObstacles=[
+ {x:1530,y:335,w:90,h:145},{x:2510,y:0,w:90,h:270},
+ {x:3480,y:325,w:95,h:155},{x:4320,y:0,w:100,h:295},
+ {x:5020,y:335,w:90,h:145}
+];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
 let lifts=[];
@@ -93,7 +100,7 @@ function groundAt(x,y){
  return grounds.some(q=>x>=q.x&&x<=q.x+q.w&&y>=q.y-3&&y<=q.y+q.h);
 }
 function solids(){
- return grounds.concat(ledges.filter(l=>!l.oneway)).concat(gate.open?[]:[gate]).concat(pipes.filter(q=>q.alive)).concat(blocks.filter(b=>!b.broken).map(b=>({x:b.x,y:b.y,w:48,h:48,block:b})));
+ return grounds.concat(forestObstacles).concat(ledges.filter(l=>!l.oneway)).concat(gate.open?[]:[gate]).concat(pipes.filter(q=>q.alive)).concat(blocks.filter(b=>!b.broken).map(b=>({x:b.x,y:b.y,w:48,h:48,block:b})));
 }
 function debris(x,y,n=7){
  for(let i=0;i<n;i++)particles.push({x:x+24,y:y+20,vx:(Math.random()*6-3),vy:-3-Math.random()*5,t:55,r:3+Math.random()*5});
@@ -182,10 +189,24 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
-let springHives=[{x:1180,y:302,active:false,pulse:0},{x:2030,y:314,active:false,pulse:0},{x:2990,y:308,active:false,pulse:0},{x:3770,y:310,active:false,pulse:0},{x:4640,y:305,active:false,pulse:0}];
+let springHives=[
+{x:1040,y:305,active:false,pulse:0,fallen:false,triggerT:0},
+{x:2150,y:235,active:false,pulse:0,fallen:false,triggerT:0},
+{x:3190,y:315,active:false,pulse:0,fallen:false,triggerT:0},
+{x:4090,y:230,active:false,pulse:0,fallen:false,triggerT:0},
+{x:4930,y:305,active:false,pulse:0,fallen:false,triggerT:0}
+];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
+}
+let springButterflies=[{x:680,y:145,phase:0},{x:1790,y:170,phase:2},{x:3010,y:120,phase:4},{x:4590,y:150,phase:1}];
+function drawSpringButterflies(){
+ for(const b of springButterflies){let yy=b.y+Math.sin(frame*.055+b.phase)*19;g.save();g.translate(b.x+Math.sin(frame*.015+b.phase)*35,yy);
+  g.fillStyle='#f4a5df';g.strokeStyle='#b96ab1';g.lineWidth=2;
+  g.beginPath();g.ellipse(-11,-4,12,16,-.35,0,7);g.ellipse(11,-4,12,16,.35,0,7);g.fill();g.stroke();
+  g.fillStyle='#9164b5';g.beginPath();g.ellipse(0,1,5,13,0,0,7);g.fill();g.restore();
+ }
 }
 let straightBees=[{x:900,y:255,from:900,to:1500,speed:3.3,alive:true},{x:1830,y:215,from:1830,to:2410,speed:3.6,alive:true},{x:2770,y:250,from:2770,to:3320,speed:3.8,alive:true},{x:3570,y:205,from:3570,to:4160,speed:3.5,alive:true},{x:4410,y:245,from:4410,to:4960,speed:4.1,alive:true}];
 function updateStraightBees(){for(const b of straightBees){if(!b.alive)continue;b.x+=b.speed;if(b.x>b.to)b.x=b.from;
@@ -208,9 +229,19 @@ function updateSpringBees(){
 
  for(const h of springHives){
    if(h.pulse>0)h.pulse--;
-   if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
-     h.active=true;h.pulse=50;spawnSpringBees(h.x,h.y,3);
-     notice='ハチの巣！ ミツバチが出てきた！';noticeT=80;
+   if(h.fallen){h.y+=12;continue;}
+   // Horn dash knocks the hive down; five bees rise from below in a staggered wave.
+   if(p.hornDashT>0&&hornHit&&R(hornHit,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.fallen=true;h.active=true;h.triggerT=0;
+     for(let i=0;i<5;i++)springBees.push({x:h.x+(i-2)*24,y:GROUND+65+i*13,vx:0,vy:-3,t:460,phase:i*1.8,delay:35+i*18,fromBelow:true});
+     notice='ハチの巣が落ちた！ 下からミツバチ！';noticeT=95;
+   }else if(!h.active&&R(p,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.active=true;h.triggerT=48;h.pulse=65;
+     notice='ハチの巣が揺れている！';noticeT=75;
+   }
+   if(h.triggerT>0){
+     h.triggerT--;
+     if(h.triggerT===0)spawnSpringBees(h.x,h.y,3);
    }
  }
  for(const b of springBees){
@@ -220,14 +251,15 @@ function updateSpringBees(){
    let tx=p.x+p.w/2,ty=p.y+p.h/2;
    b.vx=Math.max(-2.9,Math.min(2.9,b.vx+(tx-b.x)*.003));
    b.vy=Math.max(-2.4,Math.min(2.4,b.vy+(ty-b.y)*.003));
-   b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;b.t--;
+   if(b.fromBelow&&b.y>GROUND-35){b.y-=4.8;b.x+=Math.sin(b.phase)*.65;}else{b.fromBelow=false;b.x+=b.vx;b.y+=b.vy+Math.sin(b.phase)*.65;}b.t--;
    if(R(p,{x:b.x-12,y:b.y-12,w:24,h:24})&&p.inv===0)hurt();
  }
  springBees=springBees.filter(b=>b.t>0);
 }
 function drawSpringBees(){
  for(const h of springHives){
-   g.save();g.translate(h.x,h.y);
+   if(h.y>GROUND+160)continue;
+   g.save();g.translate(h.x+(h.pulse?Math.sin(frame*.8)*3:0),h.y);
    g.fillStyle='#e8ac40';g.strokeStyle='#895322';g.lineWidth=3;
    g.beginPath();g.ellipse(0,0,23,30,0,0,Math.PI*2);g.fill();g.stroke();
    g.strokeStyle='#bf812a';g.lineWidth=2;
@@ -278,6 +310,14 @@ if(keys.punch&&!hornBHeld){
  if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
  if(p.hornDashT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+ if(p.hornDashT>0&&hornHit){
+   for(const h of springHives)if(!h.fallen&&R(hornHit,{x:h.x-25,y:h.y-30,w:50,h:58})){
+     h.fallen=true;h.active=true;h.triggerT=0;
+     for(let i=0;i<5;i++)springBees.push({x:h.x+(i-2)*24,y:GROUND+65+i*13,vx:0,vy:-3,t:460,phase:i*1.8,delay:35+i*18,fromBelow:true});
+     notice='ハチの巣が落ちた！';noticeT=80;
+   }
+ }
+
 
  p.x+=p.vx;
  for(let s of solids())if(!ledges.includes(s)&&R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
@@ -851,7 +891,11 @@ function draw(){
    g.restore();
    }
  }
- drawSpringBees();drawStraightBees(); // bees in front of forest
+ for(const t of forestObstacles){
+ g.fillStyle='#805033';g.strokeStyle='#4d2e1d';g.lineWidth=5;g.fillRect(t.x,t.y,t.w,t.h);g.strokeRect(t.x,t.y,t.w,t.h);
+ g.strokeStyle='#b78052';g.lineWidth=3;g.beginPath();g.moveTo(t.x+t.w*.35,t.y+8);g.lineTo(t.x+t.w*.35,t.y+t.h-8);g.stroke();
+}
+drawSpringBees();drawStraightBees();drawSpringButterflies(); // bees in front of forest
  g.restore();
 
  g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-4',720,30);

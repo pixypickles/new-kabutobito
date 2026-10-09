@@ -693,9 +693,9 @@ function draw(){
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // Falling scale powder, drawn as visible lavender sparkle clusters.
- for(const q of springPollen){g.save();g.globalAlpha=Math.min(1,q.t/24)*.85;
-  for(let k=0;k<15;k++){let a=k*2.399+frame*.035,rad=Math.sqrt(k)*3.2,xx=q.x+Math.cos(a)*rad,yy=q.y+Math.sin(a)*rad*.65;
-   g.fillStyle=k%3===0?'#fffbe0':k%3===1?'#f6c5f4':'#e4a6ed';g.beginPath();g.arc(xx,yy,k%4===0?1.55:.75,0,Math.PI*2);g.fill();
+ for(const q of springPollen){g.save();g.globalAlpha=Math.min(1,q.t/24)*.98;
+  for(let k=0;k<21;k++){let a=k*2.399+frame*.035,rad=Math.sqrt(k)*3.55,xx=q.x+Math.cos(a)*rad,yy=q.y+Math.sin(a)*rad*.65;
+   g.fillStyle=k%3===0?'#fffbe0':k%3===1?'#f6c5f4':'#e4a6ed';g.beginPath();g.arc(xx,yy,k%4===0?1.85:1.05,0,Math.PI*2);g.fill();
    if(k%5===0){g.strokeStyle='#fffbe7';g.lineWidth=.7;g.beginPath();g.moveTo(xx-2.6,yy);g.lineTo(xx+2.6,yy);g.moveTo(xx,yy-2.6);g.lineTo(xx,yy+2.6);g.stroke();}}
   g.restore();}
  // ladybugs

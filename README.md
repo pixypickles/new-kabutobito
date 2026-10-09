@@ -124,3 +124,6 @@ v65: Hive workers emerge one by one at 22-frame intervals, and bees are rendered
 
 
 v66: World 1-4 rebuilt as open spring forest athletics (no castle switches/guards), with straight-line worker bees, five spaced hives, and queen summoning one bee at a time less often. World 1-1 to 1-3: finer shimmering pollen and electric stun effects.
+
+
+v67: brighter fine pollen in all three spring stages. World 1-4: no castle blocks, forest trunk obstacles, butterfly decorations and straight bees; normal hive contact warns then releases 3 bees, horn dash drops hive and spawns 5 bees rising from below; queen worker summons slowed.
