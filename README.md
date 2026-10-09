@@ -121,3 +121,6 @@ v64: Removed early beehives near spawn/sap, removed all 1-2 hives and added thre
 
 
 v65: Hive workers emerge one by one at 22-frame intervals, and bees are rendered in the foreground over tree trunks. Pending workers cannot be hit before they appear.
+
+
+v66: World 1-4 rebuilt as open spring forest athletics (no castle switches/guards), with straight-line worker bees, five spaced hives, and queen summoning one bee at a time less often. World 1-1 to 1-3: finer shimmering pollen and electric stun effects.

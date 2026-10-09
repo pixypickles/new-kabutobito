@@ -693,7 +693,11 @@ function draw(){
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}
 
  // Falling scale powder, drawn as visible lavender sparkle clusters.
- for(const q of springPollen){g.save();g.globalAlpha=Math.min(1,q.t/24);g.fillStyle='#c484db';g.strokeStyle='#fff2d0';g.lineWidth=1.5;g.beginPath();g.arc(q.x,q.y,6,0,Math.PI*2);g.fill();g.stroke();g.fillStyle='#fff4bc';g.beginPath();g.arc(q.x-2,q.y-2,2,0,7);g.fill();g.restore();}
+ for(const q of springPollen){g.save();g.globalAlpha=Math.min(1,q.t/24)*.85;
+  for(let k=0;k<15;k++){let a=k*2.399+frame*.035,rad=Math.sqrt(k)*3.2,xx=q.x+Math.cos(a)*rad,yy=q.y+Math.sin(a)*rad*.65;
+   g.fillStyle=k%3===0?'#fffbe0':k%3===1?'#f6c5f4':'#e4a6ed';g.beginPath();g.arc(xx,yy,k%4===0?1.55:.75,0,Math.PI*2);g.fill();
+   if(k%5===0){g.strokeStyle='#fffbe7';g.lineWidth=.7;g.beginPath();g.moveTo(xx-2.6,yy);g.lineTo(xx+2.6,yy);g.moveTo(xx,yy-2.6);g.lineTo(xx,yy+2.6);g.stroke();}}
+  g.restore();}
  // ladybugs
  for(let a of ants)if(a.alive){
    let feet=a.y+30, cx=a.x+18;
@@ -846,6 +850,11 @@ function draw(){
    g.restore();
    }
  }
+ if(pollenStun>0){g.save();g.translate(p.x+p.w/2,p.y+p.h/2);
+  for(let j=0;j<5;j++){let a=j*Math.PI*2/5+frame*.16,r=26+Math.sin(frame*.45+j)*5;
+   let x=Math.cos(a)*r,y=Math.sin(a)*r;g.strokeStyle=j%2?'#fff7a1':'#a4f7ff';g.lineWidth=2.5;
+   g.beginPath();g.moveTo(x-7,y-8);g.lineTo(x+1,y-3);g.lineTo(x-5,y+4);g.lineTo(x+8,y+9);g.stroke();}
+  g.restore();}
  drawSpringBees(); // foreground layer: bees never disappear behind tree trunks
  g.restore();
 

@@ -44,40 +44,30 @@ if(LOOP2){p.blueHorn=true;}
 if(p.big){let f=p.y+p.h;p.h=62;p.y=f-62}
 
 const grounds=[
- {x:0,y:GROUND,w:1050,h:60},{x:1170,y:GROUND,w:920,h:60},{x:2220,y:GROUND,w:970,h:60},
- {x:3330,y:GROUND,w:920,h:60},{x:4390,y:GROUND,w:850,h:60},{x:5380,y:GROUND,w:1020,h:60}
+ {x:0,y:GROUND,w:710,h:60},{x:860,y:GROUND,w:660,h:60},
+ {x:1660,y:GROUND,w:710,h:60},{x:2510,y:GROUND,w:640,h:60},
+ {x:3310,y:GROUND,w:710,h:60},{x:4170,y:GROUND,w:650,h:60},
+ {x:4960,y:GROUND,w:1440,h:60}
 ];
 const ledges=[
- {x:420,y:365,w:192,h:32},{x:830,y:320,w:144,h:32},
- {x:1370,y:370,w:192,h:32},{x:1840,y:305,w:144,h:32},
- {x:2460,y:355,w:192,h:32},{x:2910,y:300,w:144,h:32},
- {x:3540,y:365,w:192,h:32},{x:4030,y:305,w:144,h:32},
- {x:4620,y:355,w:192,h:32},{x:5010,y:295,w:144,h:32},
- {x:5390,y:230,w:105,h:20,oneway:1},{x:5550,y:405,w:115,h:20,oneway:1},{x:5800,y:370,w:115,h:20,oneway:1},{x:5990,y:230,w:105,h:20,oneway:1}
+ {x:530,y:366,w:155,h:22,oneway:1},{x:740,y:294,w:145,h:22,oneway:1},
+ {x:1110,y:340,w:165,h:22,oneway:1},{x:1490,y:295,w:145,h:22,oneway:1},
+ {x:1930,y:350,w:160,h:22,oneway:1},{x:2280,y:265,w:155,h:22,oneway:1},
+ {x:2840,y:345,w:155,h:22,oneway:1},{x:3150,y:275,w:165,h:22,oneway:1},
+ {x:3650,y:348,w:165,h:22,oneway:1},{x:4000,y:265,w:145,h:22,oneway:1},
+ {x:4480,y:344,w:165,h:22,oneway:1},{x:4800,y:280,w:145,h:22,oneway:1},
+ {x:5220,y:320,w:145,h:22,oneway:1},{x:5650,y:350,w:145,h:22,oneway:1},
+ {x:5950,y:275,w:145,h:22,oneway:1}
 ];
-let blocks=[
- {x:470,y:269,type:'leaf'},{x:1420,y:274,type:'sap'},{x:2510,y:259,type:'leaf'},
- {x:3590,y:269,type:'leaf'},{x:4670,y:259,type:'leaf'}
-];
+let blocks=[{x:1120,y:240,type:'sap'},{x:2860,y:245,type:'leaf'},{x:4500,y:245,type:'leaf'}];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
 let lifts=[];
 let grasshoppers=[];let flyers=[];
-let switches=[
- {x:5415,y:168,w:34,h:28,on:0},
- {x:5595,y:350,w:34,h:28,on:0},
- {x:5845,y:315,w:34,h:28,on:0},
- {x:6035,y:168,w:34,h:28,on:0}
-];
-let gate={x:6100,y:0,w:56,h:480,open:0};
+let switches=[];
+let gate={x:6270,y:0,w:56,h:480,open:0};
 let boss={blueHP:5,x:5750,y:95,w:86,h:78,vx:0,alive:1,phase:0,mode:0,attackT:0,dx:0,dy:0,hitCd:0};
-let throwers=[
- {x:690,y:GROUND-50,w:38,h:50,cd:55,alive:1,face:-1},
- {x:1540,y:GROUND-50,w:38,h:50,cd:95,alive:1,face:-1},
- {x:2670,y:GROUND-50,w:38,h:50,cd:70,alive:1,face:-1},
- {x:3740,y:GROUND-50,w:38,h:50,cd:110,alive:1,face:-1},
- {x:4780,y:GROUND-50,w:38,h:50,cd:80,alive:1,face:-1}
-];
+let throwers=[];
 let enemyShots=[];let bossShots=[];
 
 let airLeaves=[
@@ -192,11 +182,18 @@ if(LOOP2&&typeof ladybugs!=='undefined'&&Array.isArray(ladybugs)&&typeof thrower
 let hornTapDir=0,hornTapFrame=-999,hornReadyDir=0,hornReadyT=0,prevHornL=false,prevHornR=false,hornBHeld=false;
 
 // Spring beehives: harmless until touched; then release three pursuing workers.
-let springHives=[{'x': 1030, 'y': 245, 'active': false, 'pulse': 0}, {'x': 1510, 'y': 330, 'active': false, 'pulse': 0}, {'x': 2090, 'y': 230, 'active': false, 'pulse': 0}, {'x': 2750, 'y': 320, 'active': false, 'pulse': 0}, {'x': 3410, 'y': 220, 'active': false, 'pulse': 0}, {'x': 4050, 'y': 320, 'active': false, 'pulse': 0}, {'x': 4760, 'y': 235, 'active': false, 'pulse': 0}, {'x': 5290, 'y': 280, 'active': false, 'pulse': 0}];
+let springHives=[{x:1180,y:302,active:false,pulse:0},{x:2030,y:314,active:false,pulse:0},{x:2990,y:308,active:false,pulse:0},{x:3770,y:310,active:false,pulse:0},{x:4640,y:305,active:false,pulse:0}];
 let springBees=[];
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
+let straightBees=[{x:900,y:255,from:900,to:1500,speed:3.3,alive:true},{x:1830,y:215,from:1830,to:2410,speed:3.6,alive:true},{x:2770,y:250,from:2770,to:3320,speed:3.8,alive:true},{x:3570,y:205,from:3570,to:4160,speed:3.5,alive:true},{x:4410,y:245,from:4410,to:4960,speed:4.1,alive:true}];
+function updateStraightBees(){for(const b of straightBees){if(!b.alive)continue;b.x+=b.speed;if(b.x>b.to)b.x=b.from;
+ if(R(p,{x:b.x-12,y:b.y-11,w:24,h:22})&&p.inv===0)hurt();}}
+function drawStraightBees(){for(const b of straightBees){if(!b.alive)continue;g.save();g.translate(b.x,b.y);
+ g.fillStyle='#e9faff';g.beginPath();g.ellipse(-5,-9,9,5,-.4,0,7);g.ellipse(6,-9,9,5,.4,0,7);g.fill();
+ g.fillStyle='#ffdb57';g.strokeStyle='#6c4723';g.lineWidth=2;g.beginPath();g.ellipse(0,0,13,9,0,0,7);g.fill();g.stroke();
+ g.fillStyle='#56371e';g.fillRect(-5,-8,3,16);g.fillRect(3,-8,3,16);g.restore();}}
 function updateSpringBees(){
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
@@ -248,7 +245,7 @@ function drawSpringBees(){
    g.restore();
  }
 }
-function update(){updateSpringBees();/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
+function update(){updateSpringBees();updateStraightBees();/*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
  if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
  if(dead){p.vy+=.6;p.y+=p.vy;if(p.y>650)setTimeout(reset,350);return}
@@ -325,6 +322,7 @@ if(keys.punch&&!hornBHeld){
    loopBullets=loopBullets.filter(q=>q.t>0&&q.x>-150&&q.x<(typeof WORLD!=='undefined'?WORLD:8000)+150&&q.y>-150&&q.y<650);if(loopBullets.length>12)loopBullets.splice(0,loopBullets.length-12);
    for(let b of loopBursts)b.t--;loopBursts=loopBursts.filter(b=>b.t>0);
  }
+ if(hornHit)for(const b of straightBees)if(b.alive&&R(hornHit,{x:b.x-14,y:b.y-12,w:28,h:24})){b.alive=false;score+=150;debris(b.x,b.y,6)}
  if(hornHit){
    /* BLUE HORN TERRAIN BREAK */
    if(p.blueHorn){
@@ -430,18 +428,7 @@ if(keys.punch&&!hornBHeld){
  thrownStags=thrownStags.filter(t=>t.t>0&&t.y<650);
 
 
- // Four boss-room switches. Press B near one to activate it.
- for(let sw of switches)if(!sw.on){
-   let sb={x:sw.x-12,y:sw.y-12,w:sw.w+24,h:sw.h+24};
-   if((hornHit&&R(hornHit,sb))||(punch&&R(punch,sb))){
-     sw.on=1;score+=300;debris(sw.x,sw.y,8);
-     notice='スイッチ作動！ あと'+switches.filter(x=>!x.on).length+'個';noticeT=70;
-   }
- }
- if(!gate.open&&switches.every(sw=>sw.on)){
-   gate.open=1;score+=1000;debris(gate.x,gate.y+120,18);
-   notice='4つ作動！ 出口が開いた！';noticeT=130;
- }
+ // The queen bee alone guards the exit. No castle switches.
  // Pale-castle throwers: two-head-tall weevil guards tossing wooden nuts.
  for(let e of throwers){
    if(!e.alive)continue;
@@ -469,7 +456,7 @@ if(keys.punch&&!hornBHeld){
  if(boss.alive){
    boss.phase++;
    if(boss.hitCd>0)boss.hitCd--;
-   if(boss.phase%175===0)spawnSpringBees(boss.x+40,boss.y+48,3);
+   if(boss.phase%300===0&&springBees.filter(b=>b.t>0).length<2)spawnSpringBees(boss.x+40,boss.y+48,1);
    if(boss.mode===0){
      boss.x=5750+Math.sin(boss.phase*.017)*175;
      boss.y=80+Math.sin(boss.phase*.039)*22;
@@ -543,31 +530,21 @@ function drawSpringBlossoms(){
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
- g.fillStyle='#7f929d';g.fillRect(0,0,W,H);
- // cool blue-gray rear wall so the white wooden blocks read clearly in front
- g.fillStyle='#a8d5ad';g.fillRect(0,0,W,H);
- g.strokeStyle='#80b18b';g.lineWidth=2;
- for(let y=0;y<H;y+=48){
-   let off=((y/48)%2)*32;
-   for(let x=-64+off;x<W;x+=64)g.strokeRect(x,y,64,48);
- }
- // beams and narrow castle windows
- g.fillStyle='#739c69';
- for(let x=190;x<W;x+=310){g.fillRect(x,0,12,H);g.fillRect(x-60,180,132,10)}
- for(let x=120;x<W;x+=290){g.fillStyle='#678c67';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
+ // Open spring forest rather than the old stone castle.
+ let sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#d5f5ff');sky.addColorStop(1,'#ecf9d8');g.fillStyle=sky;g.fillRect(0,0,W,H);
+ for(let i=0;i<12;i++){let x=(i*181-(cam*.18)%181)-75;
+   g.fillStyle=i%2?'#b3d79a':'#c4e4aa';g.fillRect(x,80,67,H);
+   g.fillStyle=i%3?'#b6e17f':'#a4d773';g.beginPath();g.ellipse(x+34,110,103,76,0,0,7);g.fill();}
  drawSpringFlowers();
- g.save();g.translate(-cam,0);
- drawSpringBlossoms();
-
- for(let q of grounds){
-   g.fillStyle='#e8dfcf';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#bcae96';g.fillRect(q.x,q.y,q.w,8);
-   g.strokeStyle='#c8bca8';g.lineWidth=2;for(let xx=q.x;xx<q.x+q.w;xx+=48)g.strokeRect(xx,q.y,48,48);
- }
+ g.save();g.translate(-cam,0);drawSpringBlossoms();
+ for(let q of grounds){g.fillStyle='#865436';g.fillRect(q.x,q.y,q.w,q.h);
+  g.fillStyle='#7dc64b';g.fillRect(q.x,q.y,q.w,10);
+  g.strokeStyle='#ad7551';g.lineWidth=3;g.beginPath();g.moveTo(q.x+12,q.y+30);g.lineTo(q.x+q.w-15,q.y+30);g.stroke();}
  for(let l of ledges)if(!l.broken){
    if(l.oneway){
-     g.fillStyle='#f7f0e2';g.fillRect(l.x,l.y,l.w,l.h);
-     g.strokeStyle='#bbaa8f';g.lineWidth=3;g.strokeRect(l.x,l.y,l.w,l.h);
-     g.fillStyle='#d5c5a8';for(let xx=l.x+10;xx<l.x+l.w;xx+=24)g.fillRect(xx,l.y+6,14,4);
+     g.fillStyle='#99603b';g.fillRect(l.x,l.y,l.w,l.h);
+     g.strokeStyle='#65412b';g.lineWidth=3;g.strokeRect(l.x,l.y,l.w,l.h);
+     g.fillStyle='#83c852';g.fillRect(l.x,l.y,l.w,5);
    }else{
      g.fillStyle='#f0e8d9';g.fillRect(l.x,l.y,l.w,l.h);g.strokeStyle='#c2b39d';g.lineWidth=3;g.strokeRect(l.x,l.y,l.w,l.h);
      for(let xx=l.x+48;xx<l.x+l.w;xx+=48){g.beginPath();g.moveTo(xx,l.y);g.lineTo(xx,l.y+l.h);g.stroke()}
@@ -874,7 +851,7 @@ function draw(){
    g.restore();
    }
  }
- drawSpringBees(); // foreground layer: bees never disappear behind tree trunks
+ drawSpringBees();drawStraightBees(); // bees in front of forest
  g.restore();
 
  g.fillStyle='#fff';g.font='bold 22px monospace';g.fillText('KABUTOBITO',24,30);g.fillText(String(score).padStart(6,'0'),24,55);g.fillText('🍃 '+stars,190,55);g.fillText('WORLD  1-4',720,30);
