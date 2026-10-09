@@ -166,3 +166,6 @@ v80: Queen stinger projectiles are stopped by tree trunks, obstacles and branche
 
 
 v81: World 2-3 stag beetles walk back and forth on their branches and cannot be stomped because of their upward mandibles; horn attacks still defeat them. Flying kanabun spot the player and charge directly, dealing contact damage during the charge.
+
+
+v82: World 2-4 rebuilt from the summer World 2-1 forest: three mandatory one-on-one stag-beetle miniboss duels (3 horn hits each) and a final king stag boss (7 hits). Each duel seals the arena with tree barriers until victory. Stag beetles telegraph straight charges, pause to recover, and cannot be safely stomped because their pincers point upward. The exit unlocks only after all four fights.
