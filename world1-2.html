@@ -515,8 +515,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  cam=Math.max(0,Math.min(WORLD-W,p.x-300));
  // v39: vertical camera only moves when the player climbs above the normal play band.
  // Negative camY means the view has climbed upward; easing keeps it gentle.
- let targetCamY=Math.max(-400,Math.min(0,p.y-280));
- camY+=(targetCamY-camY)*0.12;
+ camY=0;
 }
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}

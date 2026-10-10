@@ -44,17 +44,15 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 const grounds=[{x:0,y:480,w:470,h:70},{x:5520,y:480,w:480,h:70}];
 const ledges=[
-{x:410,y:410,w:94,h:23},{x:800,y:350,w:94,h:23},
-{x:1200,y:390,w:94,h:23},{x:1600,y:320,w:94,h:23},
-{x:2010,y:385,w:94,h:23},{x:2410,y:340,w:94,h:23},
-{x:2800,y:395,w:94,h:23},{x:3220,y:330,w:94,h:23},
-{x:3610,y:395,w:94,h:23},{x:4030,y:335,w:94,h:23},
-{x:4440,y:390,w:94,h:23},{x:4860,y:330,w:94,h:23},
-{x:5250,y:410,w:230,h:23}
+ {x:410,y:410,w:90,h:23},
+ {x:1500,y:375,w:95,h:23},
+ {x:2800,y:390,w:95,h:23},
+ {x:4120,y:355,w:95,h:23},
+ {x:5350,y:410,w:120,h:23}
 ];
-const redDragonflies=Array.from({length:12},(_,i)=>{
- const x=625+i*395,y=315+(i%3)*30;
- return {x,y,w:85,h:14,vx:i%2?1.5:-1.5,alive:true,minX:x-115,maxX:x+115,drift:false,redDragonfly:true};
+const redDragonflies=Array.from({length:8},(_,i)=>{
+ const x=900+i*630,y=230+(i%4)*48;
+ return {x,y,w:85,h:14,vx:-1.6-i%3*.45,alive:true,redDragonfly:true,respawn:0};
 });
 // Red dragonflies are moving enemies, not permanent platforms.
 
@@ -62,10 +60,12 @@ const redDragonflies=Array.from({length:12},(_,i)=>{
 // Independently staggered positions and speeds avoid synchronized rows or empty waves.
 const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
 const leafFragments=[];
-const driftingLeaves=Array.from({length:5},(_,i)=>({
- x:530+((i*173+petalRand(i,1)*92)%4930),y:-360+((i*197+petalRand(i,2)*53)%940),
- w:94,h:17,vx:i%5===0?-1.25-petalRand(i,3)*.4:-.55-petalRand(i,3)*.38,vy:i%5===0?0:.48+petalRand(i,4)*.32,
- drift:true,seed:i,crumble:0,broken:false
+const driftingLeaves=Array.from({length:48},(_,i)=>({
+ x:490+((i*109+petalRand(i,1)*220)%4900),
+ y:85+((i*127+petalRand(i,2)*65)%320),
+ w:82+petalRand(i,3)*18,h:17,
+ vx:-.35-petalRand(i,4)*.55,vy:.18+petalRand(i,5)*.25,
+ drift:true,seed:i,crumble:0,broken:false,respawn:0
 }));
 ledges.push(...driftingLeaves);
 
@@ -270,9 +270,21 @@ function drawSpringBees(){
  }
 }
 function update(){updateSpringBees();
- for(const d of redDragonflies)if(d.alive){
+ for(const d of redDragonflies){
+   if(!d.alive){
+     d.respawn++;
+     if(d.respawn>120){
+       d.alive=true;d.respawn=0;
+       d.x=Math.min(WORLD-170,cam+W+90+Math.random()*250);
+       d.y=205+Math.random()*170;
+     }
+     continue;
+   }
    d.x+=d.vx;
-   if(d.x<d.minX||d.x>d.maxX){d.vx*=-1;d.x=Math.max(d.minX,Math.min(d.maxX,d.x))}
+   if(d.x<cam-170){
+     d.x=Math.min(WORLD-170,cam+W+120+Math.random()*280);
+     d.y=205+Math.random()*170;
+   }
  }
  for(let i=0;i<driftingLeaves.length;i++){
  const l=driftingLeaves[i];
@@ -281,7 +293,7 @@ function update(){updateSpringBees();
    l.crumble--;
    if(l.crumble===0){
      l.broken=true;
-     for(let k=0;k<12;k++)leafFragments.push({x:l.x+Math.random()*l.w,y:l.y+Math.random()*l.h,
+     for(let k=0;k<22;k++)leafFragments.push({x:l.x+Math.random()*l.w,y:l.y+Math.random()*l.h,
        vx:(Math.random()-.5)*6,vy:-2-Math.random()*3,rot:Math.random()*6,vr:(Math.random()-.5)*.25,t:46});
      l.y=10000;
    }
@@ -292,13 +304,13 @@ function update(){updateSpringBees();
  // Recycle only after the leaf has dropped well below the playable view.
  if(l.broken){
    l.respawn=(l.respawn||0)+1;
-   if(l.respawn<240)continue;
-   l.broken=false;l.respawn=0;l.crumble=0;
+   if(l.respawn<105)continue;
+   l.broken=false;l.respawn=0;l.crumble=0;l.y=100+Math.random()*260;l.x=Math.min(WORLD-120,cam+W+Math.random()*350);
  }
- if(l.y>650||(l.vy===0&&l.x<cam-320)){
+ if(l.y>590||l.x<cam-150){
    // Restart each petal independently above the visible region, near the player's route.
-   l.y=-90-petalRand(frame+i*37,2)*440;
-   l.x=Math.max(480,Math.min(5480,cam-140+petalRand(frame+i*53,1)*1380));
+   l.y=100+petalRand(frame+i*37,2)*280;
+   l.x=Math.max(480,Math.min(5480,cam+W+petalRand(frame+i*53,1)*280));
    l.vx=i%5===0?-1.25-petalRand(frame+i*29,3)*.4:-.55-petalRand(frame+i*29,3)*.38;
    l.vy=i%5===0?0:.48+petalRand(frame+i*31,4)*.32;
    if(i%5===0){l.x=cam+1000+petalRand(frame+i*53,1)*350;l.y=100+petalRand(frame+i*37,2)*300;}
@@ -561,8 +573,7 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  cam=Math.max(0,Math.min(WORLD-W,p.x-300));
  // v39: vertical camera only moves when the player climbs above the normal play band.
  // Negative camY means the view has climbed upward; easing keeps it gentle.
- let targetCamY=Math.max(-400,Math.min(0,p.y-280));
- camY+=(targetCamY-camY)*0.12;
+ camY=0;
 }
 
 function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+26,y-12,30,0,7);g.arc(x+58,y,23,0,7);g.fill()}
@@ -641,17 +652,21 @@ function draw(){
    for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#ae482e';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
  for(let q of grounds)drawBranch(q,false);
- for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);if(l.crumble>0){g.scale(.35+.65*l.crumble/25,.45+.55*l.crumble/25);g.rotate(Math.sin(frame*.5)*.12)}g.fillStyle='#e4a451';g.strokeStyle='#a45b30';g.lineWidth=3;
+ for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);const crush=l.crumble>0?1-l.crumble/25:0;
+ if(crush){g.translate(Math.sin(frame*.65+l.seed)*crush*3,crush*4);g.rotate(Math.sin(frame*.8+l.seed)*crush*.12)}g.fillStyle='#e4a451';g.strokeStyle='#a45b30';g.lineWidth=3;
  // Side profile: rounded base at left, single narrow tip at right with a tiny notch.
  g.beginPath();g.moveTo(-l.w*.47,1);
- g.bezierCurveTo(-l.w*.46,-13,-l.w*.19,-18,l.w*.08,-14);
+ g.bezierCurveTo(-l.w*.46,-13+crush*9,-l.w*.19,-18+crush*14,l.w*.08,-14+crush*12);
  g.bezierCurveTo(l.w*.29,-11,l.w*.39,-5,l.w*.48,-4);
  g.lineTo(l.w*.39,0);g.lineTo(l.w*.48,4);
- g.bezierCurveTo(l.w*.23,15,-l.w*.16,17,-l.w*.39,9);
+ g.bezierCurveTo(l.w*.23,15-crush*9,-l.w*.16,17-crush*11,-l.w*.39,9-crush*6);
  g.quadraticCurveTo(-l.w*.49,6,-l.w*.47,1);
  g.closePath();g.fill();g.stroke();
  g.strokeStyle='#ffe5f1';g.lineWidth=2;g.beginPath();
- g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1,l.w*.36,0);g.stroke();
+ g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1+crush*5,l.w*.36,0);g.stroke();
+ if(crush){g.strokeStyle='#92502d';g.lineWidth=1.7;
+ for(let k=0;k<7;k++){const xx=-l.w*.36+k*l.w*.12;
+ g.beginPath();g.moveTo(xx,-7+Math.sin(k*2)*crush*5);g.lineTo(xx+6,6-Math.cos(k*3)*crush*4);g.stroke()}}
  g.restore()}else drawBranch(l,true);}
  for(const q of leafFragments){
    g.save();g.translate(q.x,q.y);g.rotate(q.rot);g.globalAlpha=Math.min(1,q.t/15);

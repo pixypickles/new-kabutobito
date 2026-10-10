@@ -190,3 +190,6 @@ v88: 3-2 autumn leaves crumble 25 frames after first landing, disappear, and rec
 
 
 v89: 3-2 red dragonflies use the same side-profile dragonfly sprite as summer, colored red. They only fly horizontally, have harmless body contact, and can be stomped for a bounce or defeated by horn. Static platforms narrowed. Autumn leaf footholds visibly crumple immediately after landing, then scatter into individual falling pieces. Background palette shifted toward red and orange.
+
+
+v90: All 1-2, 2-2, 3-2 stages lock vertical camera. 3-2 now has 48 crumpling brittle leaves, fewer fixed checkpoints, and red dragonflies that continuously enter from the right and fly left at varied heights. Leaves visibly crease and fold rather than simply scale down, then scatter into 22 fragments.
