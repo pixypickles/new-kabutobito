@@ -155,7 +155,7 @@ function release(b){
 }
 function setH(h){let f=p.y+p.h;p.h=h;p.y=f-h}
 function canStand(){if(!p.big)return true;let q={x:p.x,y:p.y-(62-p.h),w:p.w,h:62};return !solids().some(s=>R(q,s))}
-function hurt(force=false){if(p.hornT>0&&!force)return;
+function hurt(force=false){if(dead)return;if(p.hornT>0&&!force)return;
  if(p.inv)return;
  if(p.glove){p.inv=100;p.vy=-5}
  else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
@@ -194,6 +194,7 @@ function drawSapBottle(cx,cy,scale=1){
 function reset(){location.reload()}
 function nextStage(url){
  localStorage.setItem('maruchibiScore',String(score));localStorage.setItem('maruchibiStars',String(stars));
+ localStorage.setItem('kabutoStageCarry',JSON.stringify({next:url.split('/').pop(),element:p.element,big:p.big,blueHorn:p.blueHorn}));
  localStorage.setItem('maruchibiBig',p.big?'1':'0');localStorage.setItem('maruchibiGlove','0');localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
  localStorage.setItem('kabutobitoClearedStage','1-4');localStorage.setItem('kabutobitoNextStage',url);
  location.href='stage-clear.html';
@@ -272,7 +273,7 @@ function drawSpringButterflies(){
 let straightBees=[];
 function updateStraightBees(){}
 function drawStraightBees(){}
-function updateSpringBees(){
+function updateSpringBees(){if(dead)return;
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
    if(b.delay>0)continue;

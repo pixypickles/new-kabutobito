@@ -40,6 +40,18 @@ const p={x:90,y:GROUND-44,w:38,h:44,vx:0,vy:0,on:false,big:false,glove:false,fac
 if(LOOP2){p.blueHorn=true;p.big=true;p.glove=false;if(p.h<62){let _f=p.y+p.h;p.h=62;p.y=_f-62;}}
 if(localStorage.getItem('maruchibiBig')==='1'){p.big=true;setTimeout(()=>{if(p.h<62){let feet=p.y+p.h;p.h=62;p.y=feet-62;}},0)}
 if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
+const stageCarry=(()=>{try{return JSON.parse(localStorage.getItem('kabutoStageCarry')||'null')}catch{return null}})();
+if(stageCarry&&stageCarry.next===location.pathname.split('/').pop()){
+ p.element=stageCarry.element||'';
+ p.big=!!stageCarry.big;
+ p.blueHorn=!!stageCarry.blueHorn;
+ if(p.big){const feet=p.y+p.h;p.h=62;p.y=feet-62;}
+ localStorage.setItem('kabutoElement',p.element);
+ localStorage.setItem('maruchibiBig',p.big?'1':'0');
+ localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
+ localStorage.removeItem('kabutoStageCarry');
+}
+
 
 
 const grounds=[{x:0,y:480,w:470,h:70},{x:5520,y:480,w:480,h:70}];
@@ -168,11 +180,11 @@ function release(b){
 }
 function setH(h){let f=p.y+p.h;p.h=h;p.y=f-h}
 function canStand(){if(!p.big)return true;let q={x:p.x,y:p.y-(62-p.h),w:p.w,h:62};return !solids().some(s=>R(q,s))}
-function hurt(force=false){if(p.hornT>0&&!force)return;
+function hurt(force=false){if(dead)return;if(p.hornT>0&&!force)return;
  if(p.inv)return;
  if(p.glove){p.inv=100;p.vy=-5}
  else if(p.big){p.big=false;p.crouch=false;setH(44);p.inv=100;p.vy=-5}
- else{dead=true;p.element='';localStorage.removeItem('kabutoElement');p.vy=-9;localStorage.setItem('maruchibiMisses',String(Number(localStorage.getItem('maruchibiMisses')||0)+1))}
+ else{dead=true;p.inv=9999;p.element='';localStorage.removeItem('kabutoElement');p.vy=-9;localStorage.setItem('maruchibiMisses',String(Number(localStorage.getItem('maruchibiMisses')||0)+1))}
 }
 function breakBlock(b){if(!b||b.broken)return;release(b);b.broken=1;debris(b.x,b.y,9);score+=100}
 function breakPipe(q){if(!q.alive)return;q.alive=0;debris(q.x,q.y,15);score+=500}
@@ -207,6 +219,7 @@ function drawSapBottle(cx,cy,scale=1){
 function reset(){location.reload()}
 function nextStage(url){
  localStorage.setItem('maruchibiScore',String(score));localStorage.setItem('maruchibiStars',String(stars));
+ localStorage.setItem('kabutoStageCarry',JSON.stringify({next:url.split('/').pop(),element:p.element,big:p.big,blueHorn:p.blueHorn}));
  localStorage.setItem('maruchibiBig',p.big?'1':'0');localStorage.setItem('maruchibiGlove','0');localStorage.setItem('maruchibiBlueHorn',p.blueHorn?'1':'0');
  localStorage.setItem('kabutobitoClearedStage','1-2');localStorage.setItem('kabutobitoNextStage',url);
  location.href='stage-clear.html';
@@ -246,7 +259,7 @@ let freeBees=[{x:1020,y:120,baseY:120,phase:0,alive:true},{x:2500,y:155,baseY:15
 function spawnSpringBees(x,y,count=3){
  for(let i=0;i<count;i++)springBees.push({x:x+(i-1)*19,y:y-18-i*14,vx:0,vy:0,t:380,phase:i*2.1,delay:i*22});
 }
-function updateSpringBees(){
+function updateSpringBees(){if(dead)return;
  const beeHit=typeof hornHit!=='undefined'&&hornHit;
  for(const b of springBees){
    if(b.delay>0)continue;
@@ -364,7 +377,7 @@ function update(){updateSpringBees();updateSummerCicadas();
  if(p.glide){if(p.blueHorn)p.vy=0;else if(p.vy>2.15)p.vy=2.15;}
 if(keys.punch&&!hornBHeld&&pollenStun===0){
    // Double-tap direction, then B: a distinct command that cannot be stolen by the normal B attack.
-   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=18;p.dashStrikeT=22;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
+   if(D&&!U&&p.hornDashCd<=0){p.attackUp=false;p.punchT=0;p.hornT=18;p.hornCd=Math.max(p.hornCd,27);p.hornDashT=p.element==='blue'?36:18;p.dashStrikeT=p.element==='blue'?40:22;p.hornDashCd=38;p.wallGrab=false;p.vx=p.face*13.2;p.vy=Math.min(p.vy,1.2);notice='HORN DASH!';noticeT=24;hornReadyT=0;hornReadyDir=0}
    else if(p.hornCd<=0){p.attackUp=!!U;p.hornT=18;p.hornCd=27;if(p.attackUp&&p.on){p.vy=-2.7;p.on=false}}
  }
  hornBHeld=!!keys.punch;
@@ -424,12 +437,12 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    // Horn exploration: crack discolored bark and expose fresh tree sap.
    for(let sp of sapSpots)if(!sp.hit&&R(hornHit,sp)){sp.hit=1;sp.sap=1;score+=150;notice='樹液が出てきた！';noticeT=75;debris(sp.x,sp.y,5)}
    // Both stag types share the four-level horn rules. A dash upgrades one level.
-   const stagPower=(p.big?1:0)+((p.hornDashT>0||p.dashStrikeT>0)?1:0)+(p.element==='red'?1:0);
+   const stagPower=p.element==='red'?2:((p.big?1:0)+((p.hornDashT>0||p.dashStrikeT>0)?1:0));
    const stagStrike=(arr,fly)=>{for(const f of arr){if(!f.alive||f.thrown)continue;
      const rr={x:f.x-5,y:f.y-5,w:f.w+10,h:f.h+10};
      if(!R(hornHit,rr)&&!((p.hornDashT>0||p.dashStrikeT>0)&&R({x:Math.min(p.x,p.x-p.vx)-90,y:p.y-15,w:Math.abs(p.vx)+p.w+180,h:p.h+30},rr)))continue;
      if(stagPower>=2){f.alive=0;debris(f.x,f.y,9);score+=350;}
-     else{f.thrown=1;f.throwVx=-p.face*(stagPower?13:7);f.throwVy=stagPower?-12:-7;f.safeT=65;score+=200;}
+     else{f.thrown=1;f.throwVx=-p.face*(stagPower?24:11);f.throwVy=stagPower?-15:-9;f.safeT=65;score+=200;}
    }};
    stagStrike(flyingStags,true);stagStrike(walkingStags,false);
    /* BLUE HORN TERRAIN BREAK */
