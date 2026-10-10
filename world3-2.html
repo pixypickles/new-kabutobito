@@ -44,22 +44,24 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 const grounds=[{x:0,y:480,w:470,h:70},{x:5520,y:480,w:480,h:70}];
 const ledges=[
-{x:410,y:410,w:185,h:23},{x:800,y:350,w:160,h:23},
-{x:1200,y:390,w:185,h:23},{x:1600,y:320,w:175,h:23},
-{x:2010,y:385,w:190,h:23},{x:2410,y:340,w:175,h:23},
-{x:2800,y:395,w:190,h:23},{x:3220,y:330,w:180,h:23},
-{x:3610,y:395,w:190,h:23},{x:4030,y:335,w:180,h:23},
-{x:4440,y:390,w:185,h:23},{x:4860,y:330,w:180,h:23},
+{x:410,y:410,w:94,h:23},{x:800,y:350,w:94,h:23},
+{x:1200,y:390,w:94,h:23},{x:1600,y:320,w:94,h:23},
+{x:2010,y:385,w:94,h:23},{x:2410,y:340,w:94,h:23},
+{x:2800,y:395,w:94,h:23},{x:3220,y:330,w:94,h:23},
+{x:3610,y:395,w:94,h:23},{x:4030,y:335,w:94,h:23},
+{x:4440,y:390,w:94,h:23},{x:4860,y:330,w:94,h:23},
 {x:5250,y:410,w:230,h:23}
 ];
 const redDragonflies=Array.from({length:12},(_,i)=>{
  const x=625+i*395,y=315+(i%3)*30;
- return {x,y,w:100,h:14,vx:i%2?1.05:-1.05,minX:x-115,maxX:x+115,drift:false,redDragonfly:true};
+ return {x,y,w:85,h:14,vx:i%2?1.5:-1.5,alive:true,minX:x-115,maxX:x+115,drift:false,redDragonfly:true};
 });
-ledges.push(...redDragonflies);
+// Red dragonflies are moving enemies, not permanent platforms.
+
 // Oversized cherry petals: level landing surfaces, drifting diagonally down.
 // Independently staggered positions and speeds avoid synchronized rows or empty waves.
 const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
+const leafFragments=[];
 const driftingLeaves=Array.from({length:5},(_,i)=>({
  x:530+((i*173+petalRand(i,1)*92)%4930),y:-360+((i*197+petalRand(i,2)*53)%940),
  w:94,h:17,vx:i%5===0?-1.25-petalRand(i,3)*.4:-.55-petalRand(i,3)*.38,vy:i%5===0?0:.48+petalRand(i,4)*.32,
@@ -268,18 +270,21 @@ function drawSpringBees(){
  }
 }
 function update(){updateSpringBees();
- for(const d of redDragonflies){
-   const riding=p.on&&Math.abs(p.y+p.h-d.y)<6&&p.x+p.w>d.x+8&&p.x<d.x+d.w-8;
+ for(const d of redDragonflies)if(d.alive){
    d.x+=d.vx;
    if(d.x<d.minX||d.x>d.maxX){d.vx*=-1;d.x=Math.max(d.minX,Math.min(d.maxX,d.x))}
-   if(riding){p.x+=d.vx;p.on=true}
  }
  for(let i=0;i<driftingLeaves.length;i++){
  const l=driftingLeaves[i];
  const wasOnPetal=!l.broken&&p.on&&Math.abs(p.y+p.h-l.y)<5&&p.x+p.w>l.x+7&&p.x<l.x+l.w-7;
  if(l.crumble>0){
    l.crumble--;
-   if(l.crumble===0){l.broken=true;l.y=10000;debris(l.x,l.y,6)}
+   if(l.crumble===0){
+     l.broken=true;
+     for(let k=0;k<12;k++)leafFragments.push({x:l.x+Math.random()*l.w,y:l.y+Math.random()*l.h,
+       vx:(Math.random()-.5)*6,vy:-2-Math.random()*3,rot:Math.random()*6,vr:(Math.random()-.5)*.25,t:46});
+     l.y=10000;
+   }
  }
  if(!l.broken){l.x+=l.vx;l.y+=l.vy;}
 
@@ -299,6 +304,8 @@ function update(){updateSpringBees();
    if(i%5===0){l.x=cam+1000+petalRand(frame+i*53,1)*350;l.y=100+petalRand(frame+i*37,2)*300;}
   }
 }
+ for(const q of leafFragments){q.x+=q.vx;q.y+=q.vy;q.vy+=.16;q.rot+=q.vr;q.t--}
+ for(let i=leafFragments.length-1;i>=0;i--)if(leafFragments[i].t<=0)leafFragments.splice(i,1);
 /*LOOP2_BLUE_PERMANENT*/if(LOOP2&&!p.blueHorn)p.blueHorn=true;/*LOOP2_DIFFICULTY*/if(LOOP2&&!window.__loop2Tuned){window.__loop2Tuned=1;for(let name of ['enemies','grasshoppers','snails','frogs','throwers']){let a=window[name];if(Array.isArray(a))for(let e of a){if(typeof e.vx==='number')e.vx*=1.12;if(typeof e.speed==='number')e.speed*=1.12}}}/*NO_GENERIC_LOOP_BULLETS*/if(typeof loopBullets!=='undefined')loopBullets.length=0;
  frame++;if(won)return;
  if(vineJumpLock)vineJumpLock--;if(p.inv)p.inv--;if(noticeT)noticeT--;if(p.punchT)p.punchT--;if(p.punchCd)p.punchCd--;if(p.hornT)p.hornT--;if(p.hornCd)p.hornCd--;if(p.hornDashT)p.hornDashT--;if(p.dashStrikeT)p.dashStrikeT--;if(p.hornDashCd)p.hornDashCd--;if(p.wallLock)p.wallLock--;p.anim+=Math.abs(p.vx)*.16;
@@ -347,6 +354,16 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
  if(p.hornT)hornGuard=p.attackUp?{x:p.x-11,y:p.y-(p.blueHorn?92:65),w:p.w+22,h:p.blueHorn?105:78}:{x:p.face>0?p.x+p.w-12:p.x-(p.blueHorn?94:70),y:p.y-10,w:p.blueHorn?98:72,h:p.h+34};
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
  if(p.hornDashT||p.dashStrikeT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
+ // Red dragonflies are harmless on body contact. Stomp their backs to bounce.
+ for(const d of redDragonflies)if(d.alive){
+   const hit={x:d.x+7,y:d.y-16,w:d.w-14,h:31};
+   if(hornHit&&R(hornHit,hit)){d.alive=false;score+=250;debris(d.x+d.w/2,d.y,10);continue}
+   if(p.vy>=0&&p.x+p.w>hit.x&&p.x<hit.x+hit.w&&
+      p.y+p.h<=hit.y+16&&p.y+p.h+p.vy>=hit.y){
+     d.alive=false;p.vy=-15;p.on=false;score+=250;
+     debris(d.x+d.w/2,d.y,10);
+   }
+ }
  // Horn hitbox is ready: defeat any worker bee it touches.
  if(hornHit){
    for(const b of springBees)if(b.t>0&&b.delay<=0&&R(hornHit,{x:b.x-13,y:b.y-13,w:26,h:26})){b.t=0;score+=150;debris(b.x,b.y,5)}
@@ -578,7 +595,7 @@ function drawForestBackdrop(){
  // distant trunks with parallax
  for(let i=-1;i<8;i++){let x=i*190-(cam*.12%190);g.fillStyle=i%2?'#a5c58a':'#c2d6a4';g.beginPath();g.moveTo(x+35,H);g.bezierCurveTo(x+20,350,x+70,180,x+55,-40);g.lineTo(x+135,-40);g.bezierCurveTo(x+115,180,x+150,360,x+165,H);g.closePath();g.fill()}
  // huge soft leaf masses overhead
- for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#b6dc7b':'#d4eba2';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
+ for(let i=0;i<11;i++){let x=i*125-(cam*.07%125), y=35+(i%3)*34-camY*.08;g.fillStyle=i%2?'#c95b3d':'#e89a51';g.beginPath();g.ellipse(x,y,105,55,(i%3-1)*.18,0,7);g.fill()}
  // shafts of light
  g.save();g.globalAlpha=.10;g.fillStyle='#fff7bd';for(let i=0;i<5;i++){let x=80+i*230-(cam*.04%230);g.beginPath();g.moveTo(x,-20);g.lineTo(x+95,-20);g.lineTo(x+210,H);g.lineTo(x+120,H);g.closePath();g.fill()}g.restore();
 }
@@ -615,16 +632,16 @@ function draw(){
    g.beginPath();g.moveTo(trunkX,-260);g.lineTo(trunkX,v.top-28);g.quadraticCurveTo(v.x-48,v.top-43,v.x+38,v.top-36);g.stroke();
    g.strokeStyle='#94643d';g.lineWidth=9;
    g.beginPath();g.moveTo(trunkX,v.top-43);g.quadraticCurveTo(v.x-45,v.top-57,v.x+38,v.top-46);g.stroke();
-   g.fillStyle='#add56b';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
+   g.fillStyle='#c65a35';g.beginPath();g.ellipse(v.x+28,v.top-43,38,14,-.2,0,Math.PI*2);g.fill();
  }
  // Vines hang directly from the underside of their supporting branches.
  for(const v of hangingVines){
    g.strokeStyle='#315b34';g.lineWidth=10;g.lineCap='round';g.beginPath();g.moveTo(v.x,v.top-36);g.bezierCurveTo(v.x-11,v.top+65,v.x+12,v.bottom-75,v.x,v.bottom);g.stroke();
-   g.strokeStyle='#79a65c';g.lineWidth=3;g.beginPath();g.moveTo(v.x-2,v.top);g.quadraticCurveTo(v.x+9,(v.top+v.bottom)/2,v.x,v.bottom);g.stroke();
-   for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#5eaa52';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
+   g.strokeStyle='#b36b3a';g.lineWidth=3;g.beginPath();g.moveTo(v.x-2,v.top);g.quadraticCurveTo(v.x+9,(v.top+v.bottom)/2,v.x,v.bottom);g.stroke();
+   for(let yy=v.top+35;yy<v.bottom-10;yy+=52){g.fillStyle='#ae482e';g.beginPath();g.ellipse(v.x+12,yy,19,9,-.5,0,7);g.fill();}
  }
  for(let q of grounds)drawBranch(q,false);
- for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#e4a451';g.strokeStyle='#a45b30';g.lineWidth=3;
+ for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);if(l.crumble>0){g.scale(.35+.65*l.crumble/25,.45+.55*l.crumble/25);g.rotate(Math.sin(frame*.5)*.12)}g.fillStyle='#e4a451';g.strokeStyle='#a45b30';g.lineWidth=3;
  // Side profile: rounded base at left, single narrow tip at right with a tiny notch.
  g.beginPath();g.moveTo(-l.w*.47,1);
  g.bezierCurveTo(-l.w*.46,-13,-l.w*.19,-18,l.w*.08,-14);
@@ -636,6 +653,11 @@ function draw(){
  g.strokeStyle='#ffe5f1';g.lineWidth=2;g.beginPath();
  g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1,l.w*.36,0);g.stroke();
  g.restore()}else drawBranch(l,true);}
+ for(const q of leafFragments){
+   g.save();g.translate(q.x,q.y);g.rotate(q.rot);g.globalAlpha=Math.min(1,q.t/15);
+   g.fillStyle=['#cf5a32','#e7a13f','#ad402a'][Math.floor(Math.abs(q.vx)*3)%3];
+   g.beginPath();g.moveTo(0,-5);g.lineTo(5,0);g.lineTo(0,5);g.lineTo(-4,1);g.closePath();g.fill();g.restore();
+ }
  drawAutumnBlossoms();
  // giant leaves around the route; decorative, not invisible blocks
  
@@ -664,22 +686,45 @@ function draw(){
 
  // Spring enemies: butterfly folk, with petal wings and antennae.
  function springButterfly(cx,cy,face=1,flap=0,scale=1,kind=0){
-  g.save();g.translate(cx,cy);g.scale(face*scale,scale);
-  let wing=.66+Math.sin(frame*.37+flap)*.31;
-  g.fillStyle=['#f9c6de','#ffe274','#a6dafa','#f7a46d','#f4f0d9'][kind%5];g.strokeStyle=['#b965a3','#c7a44a','#6194bc','#c87955','#9f9c93'][kind%5];g.lineWidth=2.8;
-  for(const side of [-1,1]){
-   g.save();g.scale(side*wing,1);
-   g.beginPath();g.ellipse(18,-11,22,17,-.3,0,7);g.fill();g.stroke();
-   g.fillStyle=['#f6e3a1','#f9bd53','#e7f4ff','#ffe7b8','#e9f0c8'][kind%5];g.beginPath();g.ellipse(16,12,16,14,.4,0,7);g.fill();g.stroke();
-   g.fillStyle='#fff4f8';g.beginPath();g.arc(23,-12,5,0,7);g.fill();g.restore();
-  }
-  g.fillStyle='#a776bb';g.strokeStyle='#68446e';g.lineWidth=2.5;
-  g.beginPath();g.ellipse(0,7,10,18,0,0,7);g.fill();g.stroke();
-  g.beginPath();g.moveTo(-5,19);g.lineTo(-9,28);g.moveTo(5,19);g.lineTo(9,28);g.moveTo(-8,4);g.lineTo(-17,13);g.moveTo(8,4);g.lineTo(17,13);g.stroke();
-  g.fillStyle='#c995ce';g.beginPath();g.arc(0,-15,12,0,7);g.fill();g.stroke();
-  g.strokeStyle='#68446e';g.lineWidth=2;g.beginPath();g.moveTo(-5,-24);g.quadraticCurveTo(-13,-40,-19,-33);g.moveTo(5,-24);g.quadraticCurveTo(13,-40,19,-33);g.stroke();
-  g.fillStyle='#352e42';g.beginPath();g.arc(-4,-17,2,0,7);g.arc(4,-17,2,0,7);g.fill();
-  g.restore();
+   // Side-profile dragonfly: face on the left, long horizontal abdomen,
+   // two near-side wings and two far-side wings, mirrored about the body.
+   const colors=['#d94a35','#e05b37','#c84135','#e27840','#bb3833'];
+   g.save();g.translate(cx,cy);g.scale(scale*(face<0?-1:1),scale);
+   g.strokeStyle='#43545a';g.lineWidth=2.3;
+   // Two distinct pairs attached to the thorax. Each wing sweeps outward,
+   // with a slim root and rounded tip; no crossing ellipses or propeller shape.
+   for(const side of [-1,1]){
+     g.fillStyle='#d9f7f5d9';g.strokeStyle='#76b5be';g.lineWidth=1.7;
+     // Forewing: taller and nearer the head.
+     g.beginPath();g.moveTo(-12,side*0);
+     g.bezierCurveTo(-19,side*14,-21,side*43,-9,side*53);
+     g.bezierCurveTo(4,side*58,8,side*48,5,side*40);
+     g.bezierCurveTo(0,side*25,-4,side*9,-12,side*0);
+     g.closePath();g.fill();g.stroke();
+     // Hindwing: separate root just behind forewing, angled backwards.
+     g.beginPath();g.moveTo(1,side*1);
+     g.bezierCurveTo(10,side*16,17,side*34,29,side*40);
+     g.bezierCurveTo(42,side*46,45,side*34,37,side*28);
+     g.bezierCurveTo(25,side*18,12,side*7,1,side*1);
+     g.closePath();g.fill();g.stroke();
+     // Subtle wing veins.
+     g.strokeStyle='#a3d6d7';g.lineWidth=1;
+     g.beginPath();g.moveTo(-12,side*1);g.lineTo(-5,side*45);
+     g.moveTo(1,side*1);g.lineTo(34,side*33);g.stroke();
+   }
+   // Long segmented abdomen trails behind the head to the right.
+   g.fillStyle=colors[kind%colors.length];
+   g.beginPath();g.ellipse(28,5,39,10,0,0,Math.PI*2);g.fill();g.stroke();
+   g.strokeStyle='#4c4b42';g.lineWidth=1.7;
+   for(let x=5;x<59;x+=12){g.beginPath();g.moveTo(x,-3);g.lineTo(x,13);g.stroke()}
+   // Thorax, small legs and side-facing head with prominent eye.
+   g.fillStyle=colors[kind%colors.length];g.strokeStyle='#43545a';g.lineWidth=2.4;
+   g.beginPath();g.ellipse(-6,2,18,16,0,0,Math.PI*2);g.fill();g.stroke();
+   g.beginPath();g.moveTo(-11,13);g.lineTo(-19,25);g.moveTo(-1,14);g.lineTo(-5,29);g.moveTo(10,13);g.lineTo(15,25);g.stroke();
+   g.fillStyle='#f6d5a9';g.beginPath();g.ellipse(-26,-8,17,19,-.2,0,Math.PI*2);g.fill();g.stroke();
+   g.fillStyle='#2d3335';g.beginPath();g.arc(-33,-12,5,0,Math.PI*2);g.fill();
+   g.strokeStyle='#52483d';g.lineWidth=2;g.beginPath();g.moveTo(-39,-1);g.lineTo(-48,2);g.stroke();
+   g.restore();
  }
  function springLadybug(cx,cy,face=1){
   g.save();g.translate(cx,cy);g.scale(face,1);
@@ -697,16 +742,8 @@ function draw(){
   g.strokeStyle='#628b44';g.lineWidth=2;g.beginPath();g.moveTo(9,-14);g.quadraticCurveTo(4,-26,0,-24);g.moveTo(17,-14);g.quadraticCurveTo(23,-26,27,-22);g.stroke();g.restore();
  }
  
- for(const d of redDragonflies){
-   g.save();g.translate(d.x+d.w/2,d.y+5);
-   g.fillStyle='#f6c8a4bb';g.strokeStyle='#b57e55';g.lineWidth=1.5;
-   for(const side of [-1,1]){g.beginPath();g.ellipse(side*26,-13,30,7,side*.18,0,7);g.fill();g.stroke()}
-   g.fillStyle='#cb5039';g.strokeStyle='#8b3529';g.lineWidth=2;
-   g.beginPath();g.ellipse(4,0,49,9,0,0,7);g.fill();g.stroke();
-   g.fillStyle='#9c382d';g.beginPath();g.arc(-37,-1,12,0,7);g.fill();g.stroke();
-   g.fillStyle='#fff';g.beginPath();g.arc(-41,-4,3,0,7);g.fill();
-   g.strokeStyle='#793f2d';g.beginPath();g.moveTo(-17,5);g.lineTo(-25,15);g.moveTo(0,5);g.lineTo(-5,15);g.stroke();
-   g.restore();
+ for(const d of redDragonflies)if(d.alive){
+   springButterfly(d.x+d.w/2,d.y-4,d.vx<0?1:-1,frame*.08,.53,0);
  }
  for(let f of flyingStags)if(f.alive)springButterfly(f.x+f.w/2,f.y+f.h/2,f.vx<0?-1:1,f.x*.01,.72,f.kind||0);
  for(let t of thrownStags){g.save();g.translate(t.x+36,t.y+32);g.rotate(t.rot);springButterfly(0,0,1,0,.9);g.restore()}

@@ -187,3 +187,6 @@ v87: 3-1 grasshoppers and mantises are aligned with ground or ledges rather than
 
 
 v88: 3-2 autumn leaves crumble 25 frames after first landing, disappear, and recycle after a delay. 2-2 summer has only nine drifting leaves, with extra fixed stepping platforms so the route is navigable.
+
+
+v89: 3-2 red dragonflies use the same side-profile dragonfly sprite as summer, colored red. They only fly horizontally, have harmless body contact, and can be stomped for a bounce or defeated by horn. Static platforms narrowed. Autumn leaf footholds visibly crumple immediately after landing, then scatter into individual falling pieces. Background palette shifted toward red and orange.
