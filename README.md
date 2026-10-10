@@ -181,3 +181,9 @@ v85: World 3-1 autumn forest, built on the 2-1 horizontal forest route. Giant-ju
 
 
 v86: Fixed autumn insect AI running twice per frame. Grasshopper jump velocity and horizontal movement reduced, jump cooldown extended. Mantis slash velocity reduced from 8.2 to 3.8 per frame and firing interval extended from 105 to 155 frames.
+
+
+v87: 3-1 grasshoppers and mantises are aligned with ground or ledges rather than arbitrary air positions. 3-2 autumn aerial course has mostly static ledges, 12 rideable red dragonflies moving only horizontally, and only 5 occasional falling leaves, with autumn foliage.
+
+
+v88: 3-2 autumn leaves crumble 25 frames after first landing, disappear, and recycle after a delay. 2-2 summer has only nine drifting leaves, with extra fixed stepping platforms so the route is navigable.

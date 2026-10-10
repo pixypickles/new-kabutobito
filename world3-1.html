@@ -335,13 +335,23 @@ const autumnMantises=[
  {x:5180,y:415,lo:5110,hi:5400,dir:-1,t:70,alive:true},
  {x:6250,y:415,lo:6170,hi:6500,dir:-1,t:95,alive:true}
 ];
+function autumnGroundY(x,footY){
+ const surfaces=[...grounds,...ledges].filter(q=>x>=q.x-5&&x<=q.x+q.w+5&&q.y>=footY-18&&q.y<=footY+170);
+ return surfaces.length?Math.min(...surfaces.map(q=>q.y)):GROUND;
+}
+for(const b of autumnGrasshoppers){
+ b.base=autumnGroundY(b.x,b.base);b.y=b.base;
+}
+for(const m of autumnMantises){
+ m.y=autumnGroundY(m.x,m.y);
+}
 const mantisSlashes=[];
 function updateAutumnInsects(){
  for(const b of autumnGrasshoppers)if(b.alive){
    b.t--;if(b.t<=0&&b.y>=b.base){b.vy=-12.2;b.t=120;b.dir=p.x<b.x?-1:1;}
    b.vy+=.48;b.y+=b.vy;b.x+=b.dir*(b.y<b.base?1.25:.35);
    if(b.x<b.lo){b.x=b.lo;b.dir=1}if(b.x>b.hi){b.x=b.hi;b.dir=-1}
-   if(b.y>=b.base){b.y=b.base;b.vy=0}
+   if(b.y>=b.base){b.base=autumnGroundY(b.x,b.base);b.y=b.base;b.vy=0}
    const hit={x:b.x-18,y:b.y-40,w:40,h:46};
    if(hornHit&&R(hornHit,hit)){b.alive=false;score+=280;debris(b.x,b.y,9);continue}
    if(R(p,hit)){

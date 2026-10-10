@@ -43,11 +43,18 @@ if(localStorage.getItem('maruchibiBlueHorn')==='1')p.blueHorn=true;
 
 
 const grounds=[{x:0,y:480,w:470,h:70},{x:5520,y:480,w:480,h:70}];
-const ledges=[{x:1480,y:350,w:170,h:25},{x:2900,y:300,w:170,h:25},{x:4230,y:365,w:180,h:25}];
+const ledges=[
+{x:520,y:410,w:180,h:25},{x:910,y:345,w:180,h:25},
+{x:1330,y:385,w:190,h:25},{x:1740,y:325,w:180,h:25},
+{x:2170,y:390,w:180,h:25},{x:2590,y:335,w:185,h:25},
+{x:3010,y:385,w:185,h:25},{x:3440,y:325,w:180,h:25},
+{x:3850,y:390,w:185,h:25},{x:4270,y:335,w:185,h:25},
+{x:4690,y:390,w:180,h:25},{x:5120,y:345,w:185,h:25}
+];
 // Oversized cherry petals: level landing surfaces, drifting diagonally down.
 // Independently staggered positions and speeds avoid synchronized rows or empty waves.
 const petalRand=(i,k=0)=>{let t=Math.sin(i*127.1+k*311.7)*43758.5453;return t-Math.floor(t)};
-const driftingLeaves=Array.from({length:34},(_,i)=>({
+const driftingLeaves=Array.from({length:9},(_,i)=>({
  x:530+((i*173+petalRand(i,1)*92)%4930),y:-360+((i*197+petalRand(i,2)*53)%940),
  w:94,h:17,vx:i%5===0?-1.25-petalRand(i,3)*.4:-.55-petalRand(i,3)*.38,vy:i%5===0?0:.48+petalRand(i,4)*.32,
  drift:true,seed:i
