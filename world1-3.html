@@ -447,6 +447,11 @@ if(keys.punch&&!hornBHeld&&pollenStun===0){
    // A large horn can also scoop-hit item blocks from the side.
    if(p.big)for(let b of blocks)if(!b.broken&&!b.hit&&R(hornHit,{x:b.x,y:b.y,w:48,h:48}))release(b);
    for(let a of ants)if(a.alive&&!a.flat&&!a.thrown&&R(hornHit,{x:a.x-7,y:a.y-7,w:50,h:44})){
+     if(p.element==='red'){
+       a.alive=0;a.thrown=0;score+=250;debris(a.x,a.y,12);
+       continue;
+     }
+
  const dash=p.hornDashT>0||p.dashStrikeT>0;const redStrike=p.element==='red';
  if((p.big&&dash)||(redStrike&&dash)){a.alive=0;debris(a.x,a.y,10);score+=350;continue}
  const strong=p.big||dash||redStrike;

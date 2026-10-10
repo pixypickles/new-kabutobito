@@ -193,3 +193,6 @@ v89: 3-2 red dragonflies use the same side-profile dragonfly sprite as summer, c
 
 
 v90: All 1-2, 2-2, 3-2 stages lock vertical camera. 3-2 now has 48 crumpling brittle leaves, fewer fixed checkpoints, and red dragonflies that continuously enter from the right and fly left at varied heights. Leaves visibly crease and fold rather than simply scale down, then scatter into 22 fragments.
+
+
+v92: Fixed elemental horn color lost on entry to 1-4 by restoring the previous stage's carry snapshot and supporting the elemental horn property in 1-4. Added color-cycling fruit near 1-4 start, matching the existing attack-to-select and touch-to-collect mechanics. Red horn now destroys ladybug/ant actors directly across all existing stages rather than throwing them.
