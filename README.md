@@ -198,4 +198,4 @@ v90: All 1-2, 2-2, 3-2 stages lock vertical camera. 3-2 now has 48 crumpling bri
 v92: Fixed elemental horn color lost on entry to 1-4 by restoring the previous stage's carry snapshot and supporting the elemental horn property in 1-4. Added color-cycling fruit near 1-4 start, matching the existing attack-to-select and touch-to-collect mechanics. Red horn now destroys ladybug/ant actors directly across all existing stages rather than throwing them.
 
 
-v93: Autumn World 3-4 features numerous mantis guards with green flying slashes and a giant praying-mantis boss (8 HP), telegraphed charges, recovery windows, and large crescent projectiles. Red horn dash deals 2 damage.
+v94: World 3-3 is a vertical autumn tree-climb based on World 1-3, with 17+ grasshopper folk jumping from real ledges. The enemies land back on their own branch, can be stomped or hit with horns, and the exit goes to World 3-4.
