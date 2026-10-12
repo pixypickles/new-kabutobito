@@ -368,6 +368,7 @@ function updateAutumnInsects(){
    const hit={x:b.x-18,y:b.y-40,w:40,h:46};
    if(hornHit&&R(hornHit,hit)){b.alive=false;score+=280;debris(b.x,b.y,9);continue}
    if(R(p,hit)){
+     if(b.vy>0&&b.y-40<p.y+14&&b.y-10>=p.y&&!p.inv){hurt();continue}
      if(p.vy>1&&p.y+p.h<=b.y-19){b.alive=false;p.vy=-14;score+=280;debris(b.x,b.y,9)}
      else if(!scoopProtected(hit))hurt();
    }
@@ -405,15 +406,36 @@ function drawAutumnForest(){
  }
  g.restore();
 }
+
+function drawGrasshopperPerson(x,feet,dir=1,airborne=false){
+ g.save();g.translate(x,feet);if(dir<0)g.scale(-1,1);
+ const kick=airborne?12:0;
+ g.lineCap='round';g.lineJoin='round';
+ // Long, thick jumping thighs and shin segments.
+ g.strokeStyle='#315f2a';g.lineWidth=12;g.beginPath();
+ g.moveTo(-9,-27);g.lineTo(-26,-45+kick);g.lineTo(-36,-3-kick);
+ g.moveTo(9,-27);g.lineTo(27,-48+kick);g.lineTo(35,-3-kick);g.stroke();
+ g.strokeStyle='#a2ca61';g.lineWidth=7;g.beginPath();
+ g.moveTo(-10,-28);g.lineTo(-26,-44+kick);g.lineTo(-35,-5-kick);
+ g.moveTo(10,-28);g.lineTo(27,-47+kick);g.lineTo(34,-5-kick);g.stroke();
+ g.strokeStyle='#345d29';g.lineWidth=5;g.beginPath();g.moveTo(-35,-3-kick);g.lineTo(-43,-1-kick);
+ g.moveTo(34,-3-kick);g.lineTo(43,-1-kick);g.stroke();
+ // Upright humanoid torso, arms, neck and head.
+ g.fillStyle='#7caf48';g.strokeStyle='#345d29';g.lineWidth=3;
+ g.beginPath();g.ellipse(0,-40,13,23,0,0,Math.PI*2);g.fill();g.stroke();
+ g.strokeStyle='#6d9f41';g.lineWidth=7;g.beginPath();
+ g.moveTo(-11,-54);g.lineTo(-22,-37);g.lineTo(-16,-26);
+ g.moveTo(11,-54);g.lineTo(22,-37);g.lineTo(18,-25);g.stroke();
+ g.fillStyle='#8dc657';g.beginPath();g.ellipse(5,-71,13,12,0,0,Math.PI*2);g.fill();g.stroke();
+ g.strokeStyle='#456c2f';g.lineWidth=2;g.beginPath();
+ g.moveTo(3,-81);g.lineTo(-1,-99);g.moveTo(11,-81);g.lineTo(19,-99);g.stroke();
+ g.fillStyle='#203b24';g.beginPath();g.arc(11,-73,3,0,Math.PI*2);g.fill();
+ g.restore();
+}
+
 function drawAutumnInsects(){
  for(const b of autumnGrasshoppers)if(b.alive){
-   g.save();g.translate(b.x,b.y);if(b.dir<0)g.scale(-1,1);
-   g.fillStyle='#77a947';g.strokeStyle='#3d6c32';g.lineWidth=2.5;
-   g.beginPath();g.ellipse(0,-19,23,11,-.25,0,7);g.fill();g.stroke();
-   g.beginPath();g.arc(17,-28,10,0,7);g.fill();g.stroke();
-   g.strokeStyle='#477a32';g.lineWidth=4;g.beginPath();g.moveTo(-12,-12);g.lineTo(-22,-37);g.lineTo(-34,-4);g.moveTo(3,-9);g.lineTo(14,0);g.stroke();
-   g.strokeStyle='#354f2d';g.lineWidth=1.5;g.beginPath();g.moveTo(19,-36);g.lineTo(29,-49);g.moveTo(13,-36);g.lineTo(13,-48);g.stroke();
-   g.fillStyle='#172e20';g.beginPath();g.arc(22,-30,2,0,7);g.fill();g.restore();
+  drawGrasshopperPerson(b.x,b.y,b.dir,b.vy!==0);
  }
  for(const m of autumnMantises)if(m.alive){
    g.save();g.translate(m.x,m.y);if(m.dir<0)g.scale(-1,1);

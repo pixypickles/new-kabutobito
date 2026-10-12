@@ -57,7 +57,7 @@ const ledges=[
  // three-tier guard section after the glove; clear this before the quiet blue-horn room
  {x:4520,y:390,w:125,h:22,oneway:1},{x:4520,y:300,w:125,h:22,oneway:1},{x:4520,y:210,w:125,h:22,oneway:1},
 ];
-// Hanging castle walls force the route back down; the stage cannot be bypassed by staying near the ceiling.
+// Thick overhanging trunks of the autumn forest, creating natural obstacles.
 const ceilingWalls=[
  {x:820,y:0,w:105,h:250},{x:1740,y:0,w:120,h:315},{x:2660,y:0,w:110,h:245},
  {x:3540,y:0,w:125,h:320}
@@ -385,9 +385,9 @@ if(keys.punch&&!hornBHeld){
 
 
  // Final arena locks behind the player. The rear wall drops from the ceiling.
- if(!arenaWall.locked && p.x>5860){arenaWall.locked=true;arenaWall.y=-500;arenaWall.vy=18;notice='退路が閉ざされた！';noticeT=90}
+ if(!arenaWall.locked && p.x>5860){arenaWall.locked=true;arenaWall.y=-500;arenaWall.vy=18;notice='太い木の幹が道をふさいだ！';noticeT=90}
  if(arenaWall.locked && arenaWall.y<0){arenaWall.y=Math.min(0,arenaWall.y+arenaWall.vy)}
- // Pale-castle throwers: two-head-tall weevil guards tossing wooden nuts.
+ // Mantis guards launch green scythe slashes.
  for(let e of throwers){
    if(!e.alive)continue;
    e.face=p.x<e.x?-1:1;e.cd--;
@@ -475,40 +475,38 @@ function cloud(x,y){g.fillStyle='#fff';g.beginPath();g.arc(x,y,23,0,7);g.arc(x+2
 function draw(){
  /* DRAW LOOP2 BULLETS */
  if(LOOP2){for(let q of loopBullets){g.save();g.translate(q.x-cam,q.y);g.rotate(q.spin||0);g.fillStyle=q.ref?'#9ff7ff':'#ffd84a';g.strokeStyle=q.ref?'#176d88':'#795313';g.lineWidth=2.5;g.beginPath();g.ellipse(0,0,8,6,.25,0,Math.PI*2);g.fill();g.stroke();g.strokeStyle=q.ref?'#dfffff':'#9b6b19';g.lineWidth=2;g.beginPath();g.moveTo(-2,-5);g.lineTo(2,-9);g.stroke();g.restore()}for(let b of loopBursts){let rr=(15-b.t)*1.5+5;g.save();g.globalAlpha=Math.max(0,b.t/16);g.strokeStyle='#d9fbff';g.lineWidth=3;g.beginPath();g.arc(b.x-cam,b.y,rr,0,Math.PI*2);g.stroke();for(let k=0;k<6;k++){let a=k*Math.PI/3;g.beginPath();g.moveTo(b.x-cam+Math.cos(a)*rr,b.y+Math.sin(a)*rr);g.lineTo(b.x-cam+Math.cos(a)*(rr+8),b.y+Math.sin(a)*(rr+8));g.stroke()}g.restore()}}
- g.fillStyle='#17243a';g.fillRect(0,0,W,H);
- // final castle at night: cool stone-blue rear wall
- g.fillStyle='#31445c';g.fillRect(0,0,W,H);
- g.strokeStyle='#778991';g.lineWidth=2;
- for(let y=0;y<H;y+=48){
-   let off=((y/48)%2)*32;
-   for(let x=-64+off;x<W;x+=64)g.strokeRect(x,y,64,48);
+ // Autumn treetops, as in 3-1: layered red crowns and thick trunks, no castle masonry.
+ g.fillStyle='#f4d2a4';g.fillRect(0,0,W,H);
+ g.fillStyle='#f9e8bd';g.fillRect(0,0,W,270);
+ for(let i=0;i<24;i++){
+  const x=((i*213-cam*.22)%1400+1400)%1400-180;
+  g.fillStyle=['#d65b36','#eaa044','#c64c34','#efbb5c'][i%4];
+  g.beginPath();g.arc(x,65+(i*43)%160,72+(i%3)*17,0,Math.PI*2);g.fill();
  }
- // beams and narrow castle windows
- g.fillStyle='#697b82';
- for(let x=190;x<W;x+=310){g.fillRect(x,0,12,H);g.fillRect(x-60,180,132,10)}
- for(let x=120;x<W;x+=290){g.fillStyle='#526d78';g.fillRect(x,75,22,74);g.fillStyle='#cfe5e8';g.fillRect(x+5,80,12,64)}
+ for(let i=0;i<11;i++){
+  const x=((i*330-cam*.5)%1500+1500)%1500-120;
+  g.fillStyle='#8a5439';g.fillRect(x,140,52,400);
+  g.fillStyle='#b27648';g.fillRect(x+8,140,8,400);
+  g.fillStyle=['#d15c32','#db873b','#b9472c'][i%3];
+  g.beginPath();g.arc(x+22,118,90,0,Math.PI*2);g.fill();
+ }
  g.save();g.translate(-cam,0);
-
- for(let q of grounds){
-   g.fillStyle='#e8dfcf';g.fillRect(q.x,q.y,q.w,q.h);g.fillStyle='#bcae96';g.fillRect(q.x,q.y,q.w,8);
-   g.strokeStyle='#c8bca8';g.lineWidth=2;for(let xx=q.x;xx<q.x+q.w;xx+=48)g.strokeRect(xx,q.y,48,48);
+ for(const q of grounds){
+  g.fillStyle='#785038';g.fillRect(q.x,q.y,q.w,q.h);
+  g.fillStyle='#c78945';g.fillRect(q.x,q.y,q.w,11);
+  for(let xx=q.x+12;xx<q.x+q.w;xx+=50){g.strokeStyle='#593a2e';g.lineWidth=2;g.beginPath();g.moveTo(xx,q.y+15);g.lineTo(xx+13,q.y+q.h);g.stroke()}
  }
- // ceiling-hung white wooden walls: solid obstacles with a clear lower edge
- for(let q of ceilingWalls){
-   g.fillStyle='#e8dfcf';g.fillRect(q.x,q.y,q.w,q.h);g.strokeStyle='#bcae96';g.lineWidth=3;g.strokeRect(q.x,q.y,q.w,q.h);
-   g.strokeStyle='#c8bca8';g.lineWidth=2;
-   for(let yy=0;yy<q.h;yy+=48)for(let xx=0;xx<q.w;xx+=48)g.strokeRect(q.x+xx,q.y+yy,Math.min(48,q.w-xx),Math.min(48,q.h-yy));
-   g.fillStyle='#a8977e';g.fillRect(q.x,q.y+q.h-9,q.w,9);
+ for(const q of ceilingWalls){
+  g.fillStyle='#865536';g.fillRect(q.x,q.y,q.w,q.h);
+  g.fillStyle='#b77a48';g.fillRect(q.x+9,q.y,12,q.h);
+  g.strokeStyle='#593a2d';g.lineWidth=3;
+  for(let yy=q.y+25;yy<q.y+q.h;yy+=58){g.beginPath();g.moveTo(q.x+8,yy);g.quadraticCurveTo(q.x+q.w*.55,yy-12,q.x+q.w-7,yy+7);g.stroke()}
  }
- for(let l of ledges)if(!l.broken){
-   if(l.oneway){
-     g.fillStyle='#f7f0e2';g.fillRect(l.x,l.y,l.w,l.h);
-     g.strokeStyle='#bbaa8f';g.lineWidth=3;g.strokeRect(l.x,l.y,l.w,l.h);
-     g.fillStyle='#d5c5a8';for(let xx=l.x+10;xx<l.x+l.w;xx+=24)g.fillRect(xx,l.y+6,14,4);
-   }else{
-     g.fillStyle='#f0e8d9';g.fillRect(l.x,l.y,l.w,l.h);g.strokeStyle='#c2b39d';g.lineWidth=3;g.strokeRect(l.x,l.y,l.w,l.h);
-     for(let xx=l.x+48;xx<l.x+l.w;xx+=48){g.beginPath();g.moveTo(xx,l.y);g.lineTo(xx,l.y+l.h);g.stroke()}
-   }
+ for(const l of ledges)if(!l.broken){
+  g.fillStyle='#815132';g.fillRect(l.x,l.y,l.w,l.h);
+  g.fillStyle='#c58d4b';g.fillRect(l.x,l.y,l.w,7);
+  g.strokeStyle='#583b29';g.lineWidth=2;g.strokeRect(l.x,l.y,l.w,l.h);
+  for(let xx=l.x+17;xx<l.x+l.w;xx+=35){g.beginPath();g.moveTo(xx,l.y+8);g.lineTo(xx+5,l.y+l.h-3);g.stroke()}
  }
  for(let l of lifts){g.fillStyle='#a77b53';g.strokeStyle='#5c4435';g.lineWidth=3;g.fillRect(l.x,l.y,l.w,l.h);g.strokeRect(l.x,l.y,l.w,l.h);g.fillStyle='#d9bd7f';for(let x=l.x+10;x<l.x+l.w-8;x+=22)g.fillRect(x,l.y+5,12,5)}
 

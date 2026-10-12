@@ -688,16 +688,18 @@ function draw(){
  }
  for(let q of grounds)drawBranch(q,false);
  for(let l of ledges)if(!l.broken){if(driftingLeaves.includes(l)){g.save();g.translate(l.x+l.w/2,l.y+8);g.fillStyle='#7ecf60';g.strokeStyle='#37814b';g.lineWidth=3;
- // Side profile: rounded base at left, single narrow tip at right with a tiny notch.
- g.beginPath();g.moveTo(-l.w*.47,1);
- g.bezierCurveTo(-l.w*.46,-13,-l.w*.19,-18,l.w*.08,-14);
- g.bezierCurveTo(l.w*.29,-11,l.w*.39,-5,l.w*.48,-4);
- g.lineTo(l.w*.39,0);g.lineTo(l.w*.48,4);
- g.bezierCurveTo(l.w*.23,15,-l.w*.16,17,-l.w*.39,9);
- g.quadraticCurveTo(-l.w*.49,6,-l.w*.47,1);
+ // Proper intact summer leaf, a single pointed tip and continuous smooth edges.
+ g.beginPath();g.moveTo(-l.w*.48,0);
+ g.bezierCurveTo(-l.w*.32,-14,l.w*.08,-22,l.w*.49,0);
+ g.bezierCurveTo(l.w*.09,21,-l.w*.33,14,-l.w*.48,0);
  g.closePath();g.fill();g.stroke();
- g.strokeStyle='#ffe5f1';g.lineWidth=2;g.beginPath();
- g.moveTo(-l.w*.38,2);g.quadraticCurveTo(0,1,l.w*.36,0);g.stroke();
+ g.strokeStyle='#368d47';g.lineWidth=2;g.beginPath();
+ g.moveTo(-l.w*.44,0);g.lineTo(l.w*.43,0);g.stroke();
+ for(let k=1;k<5;k++){
+  let xx=-l.w*.4+k*l.w*.16;
+  g.beginPath();g.moveTo(xx,0);g.lineTo(xx+11,-8);
+  g.moveTo(xx,0);g.lineTo(xx+11,8);g.stroke();
+ }
  g.restore()}else drawBranch(l,true);}
  drawSummerCanopy();
  // giant leaves around the route; decorative, not invisible blocks
