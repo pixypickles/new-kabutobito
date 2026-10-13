@@ -201,4 +201,4 @@ v92: Fixed elemental horn color lost on entry to 1-4 by restoring the previous s
 v94: World 3-3 is a vertical autumn tree-climb based on World 1-3, with 17+ grasshopper folk jumping from real ledges. The enemies land back on their own branch, can be stomped or hit with horns, and the exit goes to World 3-4.
 
 
-v95: 3-3 jumping grasshoppers now update each frame and jump much higher, stomp the player from above, and use a shared humanoid sprite with massive long jumping legs (also used in 3-1). 3-4 castle visual replaced by autumn treetops and wooden trunks/branches, keeping the level geometry. 2-2 drifting platforms now have intact pointed leaf silhouettes with veins.
+v96: 3-4 no longer has legacy floating item blocks (including blue-horn blocks). Four thick foreground tree trunks have breakable bark. Hit bark with the horn to peel it and release sap, with visible scar and amber sap. Other stages unchanged.

@@ -65,10 +65,14 @@ const ceilingWalls=[
 // After the three-tier guard section comes a calm, enemy-free room for the blue horn.
 // Keep clear space below every item block so the small form can stand underneath and horn-hit it.
 // Standard clearance is two block-widths (96px); none overlap ledges or hanging walls.
-let blocks=[
- {x:520,y:336,type:'leaf'},{x:1350,y:336,type:'sap'},{x:2310,y:336,type:'leaf'},
- {x:4140,y:336,type:'leaf'},{x:5050,y:320,type:'leaf'},{x:5350,y:320,type:'bluehorn'},
- {x:6200,y:336,type:'sap',bossSap:true}
+// No inherited item blocks in the autumn mantis forest.
+// Sap is hidden under bark on the trunks and can be exposed with a horn strike.
+let blocks=[];
+let barkSap=[
+ {x:1260,y:285,w:66,h:112,hit:false},
+ {x:3030,y:280,w:66,h:112,hit:false},
+ {x:5130,y:275,w:66,h:112,hit:false},
+ {x:6200,y:275,w:66,h:112,hit:false}
 ];
 let pipes=[];let ants=[];let snails=[];
 let pickups=[],particles=[],thrownStags=[];
@@ -236,6 +240,12 @@ if(keys.punch&&!hornBHeld){
  if(hornActive)hornHit=p.attackUp?{x:p.x-10,y:p.y-(p.blueHorn?88:62),w:p.w+20,h:p.blueHorn?92:64}:{x:p.face>0?p.x+p.w-9:p.x-(p.blueHorn?90:64),y:p.y+1,w:p.blueHorn?92:66,h:p.h+34};
  if(p.hornDashT){hornGuard={x:p.face>0?p.x+p.w-10:p.x-88,y:p.y-8,w:98,h:p.h+24};hornHit={x:p.face>0?p.x+p.w-6:p.x-82,y:p.y,w:88,h:p.h+16};}
 
+ if(hornHit)for(const bark of barkSap)if(!bark.hit&&R(hornHit,bark)){
+   bark.hit=true;
+   pickups.push({x:bark.x+bark.w/2-15,y:bark.y+36,w:30,h:30,type:'sap',vy:-4,t:0});
+   debris(bark.x+12,bark.y+30,12);
+   notice='幹を削った！ 樹液が出てきた！';noticeT=90;score+=200;
+ }
  p.x+=p.vx;
  for(let s of solids())if(!ledges.includes(s)&&R(p,s)){let hitDir=p.vx>0?1:(p.vx<0?-1:0);if(p.vx>0)p.x=s.x-p.w;else if(p.vx<0)p.x=s.x+s.w;if(hitDir&&p.hornDashT)p.hornDashT=0;if(hitDir&&!p.on&&!p.wallLock&&((hitDir>0&&Rt)||(hitDir<0&&L))){p.wallGrab=true;p.wallDir=hitDir;p.vy=0;p.glide=false}p.vx=0}
  let oy=p.y;p.y+=p.vy;p.on=false;
@@ -510,30 +520,30 @@ function draw(){
  }
  for(let l of lifts){g.fillStyle='#a77b53';g.strokeStyle='#5c4435';g.lineWidth=3;g.fillRect(l.x,l.y,l.w,l.h);g.strokeRect(l.x,l.y,l.w,l.h);g.fillStyle='#d9bd7f';for(let x=l.x+10;x<l.x+l.w-8;x+=22)g.fillRect(x,l.y+5,12,5)}
 
- for(let b of blocks)if(!b.broken){
-   // whitewashed wooden item block with visible grain
-   g.fillStyle=b.hit?'#b9aa91':'#e8d6b8';g.strokeStyle='#806b50';g.lineWidth=3;
-   g.beginPath();g.roundRect(b.x+1.5,b.y+1.5,45,45,7);g.fill();g.stroke();
-   g.strokeStyle='#b79b76';g.lineWidth=2;
-   g.beginPath();g.moveTo(b.x+7,b.y+13);g.quadraticCurveTo(b.x+21,b.y+8,b.x+41,b.y+14);
-   g.moveTo(b.x+8,b.y+35);g.quadraticCurveTo(b.x+25,b.y+29,b.x+40,b.y+34);g.stroke();
-   g.fillStyle='#8b7357';g.beginPath();g.arc(b.x+13,b.y+25,2.2,0,7);g.fill();
-   if(!b.hit){
-     if(b.type==='leaf'){
-       // blue-leaf tree emblem
-       g.strokeStyle='#6d543a';g.lineWidth=4;g.beginPath();g.moveTo(b.x+24,b.y+37);g.lineTo(b.x+24,b.y+22);g.stroke();
-       g.fillStyle='#4d9fd8';g.strokeStyle='#285f88';g.lineWidth=1.8;
-       for(const [dx,dy,rot] of [[-7,-10,-.55],[7,-11,.55],[-9,-1,-.35],[8,-2,.35],[0,-16,0]]){
-         g.save();g.translate(b.x+24+dx,b.y+24+dy);g.rotate(rot);
-         g.beginPath();g.moveTo(-6,0);g.quadraticCurveTo(0,-5,7,0);g.quadraticCurveTo(0,5,-6,0);g.fill();g.stroke();g.restore();
-       }
-     }else{
-       if(b.type==='sap'){
-         g.save();let sx=b.x+24,sy=b.y+25;g.fillStyle='#e5a238';g.strokeStyle='#fff3c8';g.lineWidth=2;g.beginPath();g.roundRect(sx-8,sy-7,16,19,4);g.fill();g.stroke();g.fillStyle='#8a6235';g.fillRect(sx-5,sy-13,10,6);g.fillStyle='#fff3c8';g.font='bold 7px sans-serif';g.textAlign='center';g.fillText('樹液',sx,sy+4);g.restore();
-       }else{g.fillStyle='#fff';g.font='24px sans-serif';g.fillText(b.type==='glove'?'🥊':b.type==='bluehorn'?'♢':'✦',b.x+9,b.y+34);}
-     }
+ // Bark on thick trunks: a horn strike peels away the outer bark to reveal sap.
+ for(const bark of barkSap){
+   g.fillStyle='#79462c';g.fillRect(bark.x-11,110,bark.w+22,GROUND-110);
+   g.fillStyle='#9c623a';g.fillRect(bark.x-4,110,12,GROUND-110);
+   g.strokeStyle='#573524';g.lineWidth=3;
+   for(let yy=140;yy<GROUND-12;yy+=37){
+     g.beginPath();g.moveTo(bark.x+12,yy);
+     g.bezierCurveTo(bark.x+30,yy-9,bark.x+37,yy+12,bark.x+52,yy+2);g.stroke();
    }
-}
+   if(!bark.hit){
+     g.fillStyle='#634027';g.strokeStyle='#44291d';g.lineWidth=3;
+     g.beginPath();g.roundRect(bark.x,bark.y,bark.w,bark.h,14);g.fill();g.stroke();
+     g.strokeStyle='#b78351';g.lineWidth=3;
+     for(let k=0;k<5;k++){
+       const xx=bark.x+10+k*11;
+       g.beginPath();g.moveTo(xx,bark.y+10);
+       g.quadraticCurveTo(xx-7,bark.y+53,xx+3,bark.y+98);g.stroke();
+     }
+   }else{
+     g.fillStyle='#c38d55';g.beginPath();g.ellipse(bark.x+bark.w/2,bark.y+53,24,40,0,0,Math.PI*2);g.fill();
+     g.fillStyle='#e7a53c';g.beginPath();g.ellipse(bark.x+bark.w/2,bark.y+58,11,24,0,0,Math.PI*2);g.fill();
+     g.fillStyle='#f8cf72';g.beginPath();g.arc(bark.x+bark.w/2+2,bark.y+86,8,0,Math.PI*2);g.fill();
+   }
+ }
  for(let u of pickups){
    if(u.type==='sap'){drawSapBottle(u.x+15,u.y+15,.9)}else if(u.type==='glove'){g.font='34px sans-serif';g.fillText('🥊',u.x,u.y+30)}else if(u.type==='bluehorn'){g.save();g.translate(u.x+15,u.y+17);g.shadowColor='#bff8ff';g.shadowBlur=16;g.fillStyle='#9eeeff';g.strokeStyle='#eaffff';g.lineWidth=3;g.beginPath();g.moveTo(-8,10);g.quadraticCurveTo(5,-3,10,-17);g.quadraticCurveTo(14,-5,5,13);g.closePath();g.fill();g.stroke();g.restore()}else{
      let lx=u.x+15,ly=u.y+15;g.save();g.translate(lx,ly);g.rotate(-.48);
